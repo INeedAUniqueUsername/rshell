@@ -20,7 +20,7 @@ When you create your design document, do not think only about the current assign
 Please  use some drawing program to create your UML diagram. UML diagrams that are drawn by hand and scanned/photographed and added to your design document will not be allowed. Programs such as GIMP, GraphViz, or even Google Docs should be capable of creating these diagrams.
 
 ##Submission
-Submit your design document as a single PDF to the submission link in iLearn. Only one person in your group needs to submit this document.
+Submit your design document as a single PDF to github. Only one person in your group needs to submit this document.
 
 ##Grading
 Your documents will be graded using the following breakdown
