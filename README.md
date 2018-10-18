@@ -1,9 +1,9 @@
 # Assignment 1 -- Creating a Design Document
 
-## Introduction
-As programmers it is tempting for us to get our hands dirty with code immediately after receiving the specs. In any complex software development, there are many moving parts and pieces that can quickly turn out project into spaghetti code. It is imperative that before we open vim we take a step back, plan out the code we are going to write, and create a design to follow. One tool software engineers use for this is Unified Modeling Language (UML) which help visualize our project’s architecture. In this assignment you will create a design document to map out your first coding assignment, Assignment 2. This will include a simple UML diagram to represent your components and their dependencies.
-
 **Note: All assignments must be done with *exactly* one partner.**
+
+## Introduction
+As programmers it is tempting for us to get our hands dirty with code immediately after receiving the specs. In any complex software development, there are many moving parts and pieces that can quickly turn out project into spaghetti code. It is imperative that before we open vim we take a step back, plan out the code we are going to write, and create a design to follow. One tool software engineers use for this is Unified Modeling Language (UML) which help visualize our project’s architecture. In this assignment you will create a design document to map out your first coding assignment, Assignment 2. This will include a simple UML diagram to represent your components and their dependencies. You can [read more about creating UML diagrams from this slide deck](https://docs.google.com/presentation/d/12gFQDxn4T0sXfXiuGIiW5OlUfgKW85e86UbnR59gMdc/edit?usp=sharing).
 
 ## Assignment
 Your assignment is to write a design document that you will use for reference when developing your Assignment 2 submission. It’s purpose is as an exercise to get you to start designing before you start coding. Like any good agile method, what you write in the design document is a starting point for your design, not a road map that you must rigidly follow (because that would be waterfall development, and this is not a government project). You should create a document with the following sections
@@ -20,7 +20,7 @@ When you create your design document, do not think only about the current assign
 Please  use some drawing program to create your UML diagram. UML diagrams that are drawn by hand and scanned/photographed and added to your design document will not be allowed. Programs such as GIMP, GraphViz, or even Google Docs should be capable of creating these diagrams.
 
 ## Submission
-Submit your design document as a single PDF to github. Only one person in your group needs to submit this document.
+Submit your design document as a single PDF to your groups GitHub repo.
 
 ## Grading
 Your documents will be graded using the following breakdown
