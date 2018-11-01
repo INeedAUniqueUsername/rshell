@@ -1,0 +1,3 @@
+[submodule "assn2-basicCommandShell"]
+	path = assn2-basicCommandShell
+	url = https://github.com/cs100/assn2-basicCommandShell.git
