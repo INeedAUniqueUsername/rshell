@@ -27,3 +27,15 @@ class Command : public Operation
 		bool execute() {
 		}
 };
+
+class Exit : public Operation {
+	private:
+		Program *parent;
+	public:
+		Exit(Program *parent) : parent(parent) {
+			
+		}
+		bool execute() {
+			parent->close();
+		}
+}
