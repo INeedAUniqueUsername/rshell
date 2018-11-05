@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-FIND_PACKAGE(Boost 1.50 REQUIRED)
+FIND_PACKAGE(Boost 1.53.00 REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 ADD_SUBDIRECTORY(googletest)
@@ -10,11 +10,14 @@ SET(CMAKE_CXX_STANDARD 11)
 ADD_EXECUTABLE(
 	test
 	src/main.cpp
+	src/program.cpp
+	
 )
 
 ADD_EXECUTABLE(
 	test2
 	src/main.cpp
+	src/program.cpp
 )
 
 TARGET_LINK_LIBRARIES(test gtest)
