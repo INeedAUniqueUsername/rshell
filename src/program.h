@@ -19,7 +19,7 @@ class Program {
 		bool active;
 		istream& in;
 		ostream& out;
-		ostream& err;
+		ostream& dbg;
 		
 		void printInfo() {
 			//Get the login. If we fail, then don't provide info
@@ -50,7 +50,7 @@ class Program {
 			//delete login;		//For some reason, this always crashes the program
 		}
 	public:
-		Program(istream& in, ostream& out, ostream& err) : in(in), out(out), err(err) {
+		Program(istream& in, ostream& out, ostream& dbg) : in(in), out(out), dbg(dbg) {
 			
 		}
 		void run();
