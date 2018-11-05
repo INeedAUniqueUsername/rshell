@@ -4,82 +4,70 @@
 #include<unistd.h>
 #include<stdio.h>
 #include<string.h>
+#include<boost/tokenizer.hpp>
+#include<string>
 using namespace std;
 
-class Reader;
+#ifndef __PROGRAM_H__
+#define __PROGRAM_H__
 
-char* getline_c() {
-	string line;
-	getline(cin, line);
-	char *result = new char[line.size()];
-	const char* line_c = line.c_str();
-	strcpy(result, line_c);
-}
+#include "operation.h"
 
-void printInfo() {
-	//Get the login. If we fail, then don't provide info
-	char *login = getlogin();
-	if(login) {
-		cout << '[';
-		cout << login;
-		
-		//Now get the hostname. If we fail, then don't provide info
-		char *hostname = new char[HOST_NAME_MAX];
-		if(!gethostname(hostname, HOST_NAME_MAX)) {
-			cout << "@";
-			cout << hostname;
-			
-			//Now get the current working directory.
-			char *cwd = new char[PATH_MAX];
-			if(getcwd(cwd, PATH_MAX)) {
-				cout << " " << cwd;
-				
-				//If we got all the way here, then we have printed the info
-			}
-			delete cwd;
-		}
-		delete hostname;
-		
-		cout << ']';
-	}
-	delete login;
-}
 class Program {
 	private:
 		bool active;
-	public:
-		Program() {
-			
-		}
-		void run() {
-			
-			//Run until we get a close() call
-			while(true) {
-				printInfo();
-				cout << "$ ";
+		istream& in;
+		ostream& out;
+		ostream& err;
+		
+		void printInfo() {
+			//Get the login. If we fail, then don't provide info
+			char *login = getlogin();
+			if(login) {
+				out << '[';
+				out << login;
 				
-				string line;
-				cin >> line;
-				//Delete everything past the comment
-				line = line.substr(0, line.find("#", 0));
+				//Now get the hostname. If we fail, then don't provide info
+				char *hostname = new char[HOST_NAME_MAX];
+				if(!gethostname(hostname, HOST_NAME_MAX)) {
+					out << "@";
+					out << hostname;
+					
+					//Now get the current working directory.
+					char *cwd = new char[PATH_MAX];
+					if(getcwd(cwd, PATH_MAX)) {
+						out << " " << cwd;
+						
+						//If we got all the way here, then we have printed the info
+					}
+					delete cwd;
+				}
+				delete hostname;
 				
-				cout << "Actual: " << line << endl;
+				out << ']';
 			}
+			//delete login;		//For some reason, this always crashes the program
+		}
+	public:
+		Program(istream& in, ostream& out, ostream& err) : in(in), out(out), err(err) {
 			
 		}
+		void run();
 		void close() {
 			//End the program 
 		}
 };
 
 class Reader {
+	friend Program;
 	private:
 		Program *parent;
 	public:
 		Reader(Program *parent) : parent(parent) {
 			
 		}
-		void read(string statement) {
-			
-		}
+		void read(const string& statement);
+		Command createCommand(const vector<string>& parameters)
 };
+
+#endif
