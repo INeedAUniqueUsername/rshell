@@ -11,13 +11,14 @@ ADD_EXECUTABLE(
 	test
 	src/main.cpp
 	src/program.cpp
-	
+	src/operation.cpp
 )
 
 ADD_EXECUTABLE(
 	test2
 	src/main.cpp
 	src/program.cpp
+	src/operation.cpp
 )
 
 TARGET_LINK_LIBRARIES(test gtest)

@@ -1,5 +1,3 @@
-#include "program.h"
-#include "operation.h"
 #include<stdio.h>
 #include<string.h>
 #include<boost/tokenizer.hpp>
@@ -7,6 +5,10 @@
 #include<string>
 #include<vector>
 using namespace boost;
+
+#include "program.h"
+#include "reader.h"
+#include "operation.h"
 
 void Program::run() {
 	Reader reader(this);
@@ -53,11 +55,11 @@ void Program::run() {
 }
 
 void Reader::read(const string& statement) {
-	vector<Operation> operations;
-	vector<Connector> connectors;
+	vector<Operation*> operations;
+	vector<Connector*> connectors;
 	vector<string> parameters;
 	char_delimiters_separator<char> delimiters(false, "", " ");
-	tokenizer<char_delimiters_separator<char>> t(line, delimiters);
+	tokenizer<char_delimiters_separator<char>> t(statement, delimiters);
 	for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
 		string s = *i;
 		
@@ -65,22 +67,24 @@ void Reader::read(const string& statement) {
 		if(s == "&&") {
 			connector = true;
 			operations.push_back(createOperation(parameters));
-			connectors.push_back(Success());
+			connectors.push_back(new Success());
 		} else if(s == "||") {
 			connector = true;
 			operations.push_back(createOperation(parameters));
-			connectors.push_back(Failure());
+			connectors.push_back(new Failure());
 		}
 		
-		if(connector && connectors.size() > operations.size()) {
-			//Invalid statement
+		if(connector) {
+			if(connectors.size() > operations.size()) {
+				
+			}
 		}
 	}
 }
-Operation Reader::createOperation(const vector<string>& parameters) {
+Operation* Reader::createOperation(const vector<string>& parameters) {
 	if(parameters.at(0) == "exit") {
-		return Exit(parent);
+		return new Exit(parent);
 	} else {
-		return Command(parameters);
+		return new Command(parameters);
 	}
 }

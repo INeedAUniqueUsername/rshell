@@ -11,6 +11,7 @@ using namespace std;
 #ifndef __PROGRAM_H__
 #define __PROGRAM_H__
 
+#include "reader.h"
 #include "operation.h"
 
 class Program {
@@ -56,18 +57,6 @@ class Program {
 		void close() {
 			//End the program 
 		}
-};
-
-class Reader {
-	friend Program;
-	private:
-		Program *parent;
-	public:
-		Reader(Program *parent) : parent(parent) {
-			
-		}
-		void read(const string& statement);
-		Command createCommand(const vector<string>& parameters)
 };
 
 #endif
