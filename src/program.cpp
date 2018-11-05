@@ -72,6 +72,8 @@ void Reader::read(const string& statement) {
 			connector = true;
 			operations.push_back(createOperation(parameters));
 			connectors.push_back(new Failure());
+		} else {
+			parameters.push_back(s);
 		}
 		
 		if(connector) {
@@ -80,8 +82,15 @@ void Reader::read(const string& statement) {
 			}
 		}
 	}
+	Operation *op = 0;
+	if(operations.empty() && connectors.empty()) {
+		op = createOperation(parameters);
+	} else {
+		op = new Chain(operations, connectors);
+	}
 }
 Operation* Reader::createOperation(const vector<string>& parameters) {
+	cout << "Command: " << parameters.at(0) << endl;
 	if(parameters.at(0) == "exit") {
 		return new Exit(parent);
 	} else {
