@@ -54,40 +54,64 @@ void Program::run() {
 	}
 }
 
-void Reader::read(const string& statement) {
+bool Reader::read(const string& statement) {
+	//Keep vectors in case we get a Chain
 	vector<Operation*> operations;
 	vector<Connector*> connectors;
-	vector<string> parameters;
+	
+	//Store the arguments for the Command we are currently parsing
+	//This vector includes the executable at the front. We'll find it when we execute
+	vector<string> arguments;
 	char_delimiters_separator<char> delimiters(false, "", " ");
 	tokenizer<char_delimiters_separator<char>> t(statement, delimiters);
 	for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
 		string s = *i;
 		
 		bool connector = false;
+		//If we have a connector, then we are done parsing the current Command
 		if(s == "&&") {
 			connector = true;
-			operations.push_back(createOperation(parameters));
+			operations.push_back(createOperation(arguments));
+			arguments.clear();
 			connectors.push_back(new Success());
 		} else if(s == "||") {
 			connector = true;
-			operations.push_back(createOperation(parameters));
+			operations.push_back(createOperation(arguments));
+			arguments.clear();
 			connectors.push_back(new Failure());
 		} else {
-			parameters.push_back(s);
+			//Otherwise, we have a regular argument
+			arguments.push_back(s);
 		}
 		
-		if(connector) {
-			if(connectors.size() > operations.size()) {
-				
-			}
+		if(connector && connectors.size() > operations.size()) {
+			//Make sure that we have a proper number of connectors
+			parent->dbg << "Error: Only one connector allowed between pairs of commands" << endl;
 		}
 	}
+	//Don't forget to check for a command at the end
+	if(arguments.size() > 0) {
+		parent->dbg << "Added last command" << endl;
+		operations.push_back(createOperation(arguments));
+		arguments.clear();
+	}
+	
+	if(connectors.size() != (operations.size() - 1)) {
+		//Make sure that we have a proper number of connectors
+		parent->dbg << "Error: Only one connector allowed between pairs of commands" << endl;
+	}
 	Operation *op = 0;
-	if(operations.empty() && connectors.empty()) {
-		op = createOperation(parameters);
+	if(operations.size() == 1) {
+		parent->dbg << "Operation Type: Command" << endl;
+		op = operations.at(0);
 	} else {
+		parent->dbg << "Operation Type: Chain" << endl;
 		op = new Chain(operations, connectors);
 	}
+	
+	op->print(parent->dbg);
+	//Execute the operation
+	op->execute();
 }
 Operation* Reader::createOperation(const vector<string>& parameters) {
 	cout << "Command: " << parameters.at(0) << endl;
