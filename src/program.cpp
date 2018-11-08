@@ -13,6 +13,9 @@ using namespace boost;
 void Program::run() {
 	Reader reader(this);
 	//Run until we get a close() call
+	out << "rshell" << endl;
+	out << "Created by Alex Chen and Kyle Tran for CS100" << endl;
+	
 	while(true) {
 		printInfo();
 		out << "$ ";
