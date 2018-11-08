@@ -11,15 +11,14 @@ class Operation;
 #include "operation.h"
 
 class Reader {
-	friend Program;
 	private:
 		Program *parent;
+		Operation* createOperation(const vector<string>& parameters);
 	public:
 		Reader(Program *parent) : parent(parent) {
 			
 		}
-		void read(const string& statement);
-		Operation* createOperation(const vector<string>& parameters);
+		bool read(const string& statement);
 };
 
 #endif
