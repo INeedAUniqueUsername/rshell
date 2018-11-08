@@ -1,6 +1,6 @@
 #include "program.h"
 
 int main() {
-	Program *p = new Program(cin, cout, cerr);
+	Program *p = new Program(cin, cout, cout);
 	p->run();
 }
