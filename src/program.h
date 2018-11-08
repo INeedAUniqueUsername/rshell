@@ -15,6 +15,7 @@ using namespace std;
 #include "operation.h"
 
 class Program {
+	friend Reader;
 	private:
 		bool active;
 		istream& in;
