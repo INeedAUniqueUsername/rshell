@@ -1,11 +1,11 @@
 # Tasks
 WIP tasks are bolded
-- [ ] **Update the specifications**
-- [ ] **Get the Boost Tokenizer class**
+- [ ] Update the specifications
+- [X] Get the Boost Tokenizer class
 - [ ] **Create Google Test materials**
 - [ ] **Create CMake materials**
 - [X] Declare Operation
-- [ ] Declare Connector
+- [X] Declare Connector
 - [ ] Implement Program
   - [X] Implement prompt printing
   - [X] Implement user info
@@ -13,8 +13,8 @@ WIP tasks are bolded
 - [ ] Implement Reader
 -   [X] Implement comment splitting
 -   [ ] Implement semicolon splitting
--   [ ] Implement connector splitting
+-   [X] Implement connector splitting
 - [ ] Implement `Command`
-- [ ] Implement `Success`
-- [ ] Implement `Failure`
-- [ ] Implement `Chain`
+- [X] Implement `Success`
+- [X] Implement `Failure`
+- [X] Implement `Chain`
