@@ -89,7 +89,7 @@ class Command : public Operation {
 			pid_t pid;
 			//char parmList[arguments.size() + 1]; //Declare parmList array to be used with execvp
 			vector <const char*> vc;
-			transform(arguments.begin(), arguments.end(), back_inserter(vc), convert);
+			transform(arguments.begin(), arguments.end(), back_inserter(vc), convert); //Performs convert on arguments and fill vc using a back_inserter iterator
 			if ((pid == fork()) == -1) {
 				perror("fork() error");
 			}
