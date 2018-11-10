@@ -72,7 +72,7 @@ class Chain : public Operation {
 			operations.at(operations.size() - 1)->print(out);
 		}
 };
-char *convert(const string &s) {
+char *convert(const string &s) { //Function to convert string to return char pointer
 	char *pc = new char[s.size()+1];
 	strcpy(pc, s.c_str());
 	return pc;
