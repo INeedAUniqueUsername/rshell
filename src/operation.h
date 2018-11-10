@@ -85,7 +85,26 @@ class Command : public Operation {
 		Command(vector<string> arguments) : arguments(arguments) { }
 
 		bool execute() { //Executes the first argument in arguments as the program and the rest as paramaters
-
+			pid_t pid;
+				
+			char* parmList[arguments.size()];
+			for (int i = 1; i < arguments.size(); i++) {
+				parmList[i-1] = (char*) arguments[i].c_str();
+			}
+			parmList[arguments.size()] = NULL;
+	
+			if ((pid == fork()) < 0) {
+				perror("fork() error");				
+			}
+			else if (pid == 0) {
+				execvp(arguments[0].c_str(), const_cast<char**>(parmList));
+				//Create a Failure object here
+				printf("Return not expected. Must be an execvp() error. \\n");
+				
+				/*execvp(arguments[0].c_str(), parmList);
+				printf("Return not expected. Must be an execvp() error.\\n");*/
+			}	
+			/*
 			pid_t pid;
 			//char parmList[arguments.size() + 1]; //Declare parmList array to be used with execvp
 			vector <const char*> vc;
@@ -94,9 +113,9 @@ class Command : public Operation {
 				perror("fork() error");
 			}
 			else if (pid == 0) {
-				execvp(vc[0], const_cast<char**>(&vc[0])); //vc[0] is the program to be executed, 2nd argument casts to use vc as array of char pointers 
+				execvp(vc[0], const_cast<char**>(&vc[1])); //vc[0] is the program to be executed, 2nd argument casts to use vc as array of char pointers 
 				printf("Return not expected. Must be an execvp() error.\\n"); //Should not get print if execvp is successful
-			}
+			}*/
 		}
 		void print(ostream& out) {
 			//Print out our arguments
