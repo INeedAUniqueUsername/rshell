@@ -1,5 +1,6 @@
 #include <string>
 #include <unistd.h>
+#include <algorithm>
 using namespace std;
 
 #ifndef __OPERATION_H__
@@ -71,6 +72,11 @@ class Chain : public Operation {
 			operations.at(operations.size() - 1)->print(out);
 		}
 };
+char *convert(const string &s) {
+	char *pc = new char[s.size()+1];
+	strcpy(pc, s.c_str());
+	return pc;
+}
 
 class Command : public Operation {
 	protected:
@@ -78,20 +84,19 @@ class Command : public Operation {
 	public:
 		Command(vector<string> arguments) : arguments(arguments) { }
 
-		bool execute() {
-			/*
+		bool execute() { //Executes the first argument in arguments as the program and the rest as paramaters
+
 			pid_t pid;
-			char *const parmList[] = 
-			{(char*)"-l",(char*) "-a", NULL};
-			
-			if ((pid = fork()) == -1) {
+			//char parmList[arguments.size() + 1]; //Declare parmList array to be used with execvp
+			vector <const char*> vc;
+			transform(arguments.begin(), arguments.end(), back_inserter(vc), convert);
+			if ((pid == fork()) == -1) {
 				perror("fork() error");
 			}
 			else if (pid == 0) {
-				execvp("ls", parmList);
-				printf("Return not expected. Must be an execvp() error.\\n");
+				execvp(vc[0], const_cast<char**>(&vc[0])); //vc[0] is the program to be executed, 2nd argument casts to use vc as array of char pointers 
+				printf("Return not expected. Must be an execvp() error.\\n"); //Should not get print if execvp is successful
 			}
-			*/
 		}
 		void print(ostream& out) {
 			//Print out our arguments
