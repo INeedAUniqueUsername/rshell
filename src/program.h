@@ -57,6 +57,7 @@ class Program {
 		void run();
 		void close() {
 			//End the program 
+			exit(0);
 		}
 };
 
