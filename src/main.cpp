@@ -1,6 +1,9 @@
 #include "program.h"
 
+#include<sstream>
+using namespace std;
 int main() {
-	Program *p = new Program(cin, cout, cout);
+	ostringstream s;
+	Program *p = new Program(cin, cout, s);
 	p->run();
 }

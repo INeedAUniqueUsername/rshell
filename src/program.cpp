@@ -117,8 +117,8 @@ bool Reader::read(const string& statement) {
 	op->execute();
 }
 Operation* Reader::createOperation(const vector<string>& parameters) {
-	cout << "Command: " << parameters.at(0) << endl;
-	if(parameters.at(0) == "exit") {
+	parent->dbg << "Command: " << parameters.at(0) << endl;
+	if(parameters.at(0).compare("exit") == 0) {
 		return new Exit(parent);
 	} else {
 		return new Command(parameters);

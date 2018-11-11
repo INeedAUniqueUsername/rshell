@@ -1,5 +1,7 @@
 #include <string>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <algorithm>
 using namespace std;
 
@@ -72,13 +74,16 @@ class Chain : public Operation {
 			operations.at(operations.size() - 1)->print(out);
 		}
 };
-char *convert(const string &s) { //Function to convert string to return char pointer
-	char *pc = new char[s.size()+1];
-	strcpy(pc, s.c_str());
-	return pc;
-}
-
 class Command : public Operation {
+	private:
+		bool executeCommand() {
+			char* parmList[arguments.size() + 1];
+			for (int i = 0; i < arguments.size(); i++) {
+				parmList[i] = (char*) arguments[i].c_str();
+			}
+			parmList[arguments.size()] = NULL;
+			return execvp(parmList[0], const_cast<char**>(parmList)) == 0;
+		}
 	protected:
 		vector<string> arguments;
 	public:
@@ -86,36 +91,27 @@ class Command : public Operation {
 
 		bool execute() { //Executes the first argument in arguments as the program and the rest as paramaters
 			pid_t pid;
-				
-			char* parmList[arguments.size()];
-			for (int i = 1; i < arguments.size(); i++) {
-				parmList[i-1] = (char*) arguments[i].c_str();
-			}
-			parmList[arguments.size()-1] = NULL;
 	
-			if ((pid == fork()) < 0) {
-				perror("fork() error");				
-			}
-			else if (pid == 0) {
-				execvp(arguments[0].c_str(), const_cast<char**>(parmList));
-				//Create a Failure object here
-				printf("Return not expected. Must be an execvp() error. \\n");
-				
-				/*execvp(arguments[0].c_str(), parmList);
-				printf("Return not expected. Must be an execvp() error.\\n");*/
-			}	
-			/*
-			pid_t pid;
-			//char parmList[arguments.size() + 1]; //Declare parmList array to be used with execvp
-			vector <const char*> vc;
-			transform(arguments.begin(), arguments.end(), back_inserter(vc), convert); //Performs convert on arguments and fill vc using a back_inserter iterator
-			if ((pid == fork()) == -1) {
+			if ((pid = fork()) < 0) {
 				perror("fork() error");
+			} else if (pid == 0) {
+				if(executeCommand()) {
+					_exit(0);
+					return true;
+				} else {
+					perror("execvp error");
+					_exit(-1);
+					return false;
+				}
+			} else if(pid > 0) {
+				int status;
+				waitpid(pid, &status, 0);
+				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+					return true;
+				} else {
+					return false;
+				}
 			}
-			else if (pid == 0) {
-				execvp(vc[0], const_cast<char**>(&vc[1])); //vc[0] is the program to be executed, 2nd argument casts to use vc as array of char pointers 
-				printf("Return not expected. Must be an execvp() error.\\n"); //Should not get print if execvp is successful
-			}*/
 		}
 		void print(ostream& out) {
 			//Print out our arguments
