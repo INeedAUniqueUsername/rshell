@@ -92,6 +92,38 @@ TEST(ChainTest, SuccessEchoTest) {
 	
 	EXPECT_EQ("t0\nt1\n", output);
 }
+TEST(ChainTest, FailEchoTest) {
+	vector<Operation*> operations;
+	vector<Connector*> connectors;
+
+	vector<string> arguments0;
+	vector<string> arguments1;
+	
+	//arguments0.push_back("ff");
+	//arguments0.push_back("t0");
+	arguments1.push_back("echo");
+	arguments1.push_back("t1");
+
+	Connector* c0 = new Success();
+	
+	Operation* t0 = new Command(arguments0);
+	Operation* t1 = new Command(arguments1);
+
+	operations.push_back(t0);
+	operations.push_back(t1);
+
+	connectors.push_back(c0);
+
+	Operation *op = new Chain(operations, connectors);
+	testing::internal::CaptureStdout();
+	op->execute();
+	string output = testing::internal::GetCapturedStdout();
+
+	
+	EXPECT_EQ("", output);
+
+
+}
 
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
