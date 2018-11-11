@@ -9,14 +9,7 @@ SET(CMAKE_CXX_STANDARD 11)
 
 ADD_EXECUTABLE(
 	test
-	src/main.cpp
-	src/program.cpp
-	src/operation.cpp
-)
-
-ADD_EXECUTABLE(
-	test2
-	src/main.cpp
+	src/test.cpp
 	src/program.cpp
 	src/operation.cpp
 )
