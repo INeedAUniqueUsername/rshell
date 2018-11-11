@@ -91,7 +91,7 @@ class Command : public Operation {
 			for (int i = 1; i < arguments.size(); i++) {
 				parmList[i-1] = (char*) arguments[i].c_str();
 			}
-			parmList[arguments.size()] = NULL;
+			parmList[arguments.size()-1] = NULL;
 	
 			if ((pid == fork()) < 0) {
 				perror("fork() error");				

@@ -8,8 +8,8 @@ using namespace std;
 
 int main() {
 	vector<string> t;
-	t.push_back("echo");
-	t.push_back("hello");
+	t.push_back("ls");
+	t.push_back("-a");
 	Command test(t);
 	test.execute();
 	test.print(cout);
