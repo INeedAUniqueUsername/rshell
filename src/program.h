@@ -17,7 +17,6 @@ using namespace std;
 class Program {
 	friend Reader;
 	private:
-		bool active;
 		istream& in;
 		ostream& out;
 		ostream& dbg;
@@ -54,6 +53,7 @@ class Program {
 		Program(istream& in, ostream& out, ostream& dbg) : in(in), out(out), dbg(dbg) {}
 		void run();
 		void close() {
+			//out << "rshell is exiting..." << endl;
 			//End the program 
 			exit(0);
 		}
