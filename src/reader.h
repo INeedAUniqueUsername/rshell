@@ -19,6 +19,9 @@ class Reader {
 	public:
 		Reader(Program *parent) : parent(parent) { }
 		
+		//Parses a line of statements and executes it, returning the result
+		bool readLine(const string& line);
+		
 		//Parse a statement and execute it, returning the result
 		bool read(const string& statement);
 		

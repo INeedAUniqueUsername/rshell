@@ -11,56 +11,65 @@ using namespace boost;
 #include "operation.h"
 
 void Program::run() {
-	Reader reader(this);
 	//Run until we get a close() call
 	out << "rshell" << endl;
 	out << "Created by Alex Chen and Kyle Tran for CS100" << endl;
 	
+	Reader parser(this);
 	while(true) {
 		printInfo();
 		out << "$ ";
 		
 		string line;
 		getline(in, line);
-		//Delete everything past the comment
-		line = line.substr(0, line.find("#", 0));
-		
-		/*
-		auto startIndex = 0;
-		auto endIndex = line.find(";", startIndex);
-		while(endIndex != string::npos) {
-			const string statement = line.substr(startIndex, endIndex);
-			reader.read(statement);
-			
-			startIndex = endIndex + 1;
-			endIndex = line.find(";", startIndex);
-			
-			cout << "semicolon" << endl;
-			if(endIndex == string::npos) {
-				break;
-			}
-			
-		}
+		parser.readLine(line);
+	}
+}
+bool Reader::readLine(const string& line) {
+	//Delete everything past the comment
+	string statements = line.substr(0, line.find("#", 0));
+	
+	/*
+	auto startIndex = 0;
+	auto endIndex = line.find(";", startIndex);
+	while(endIndex != string::npos) {
 		const string statement = line.substr(startIndex, endIndex);
 		reader.read(statement);
-		*/
 		
-		//Split by the semicolon and remove trailing spaces
-		char_delimiters_separator<char> delimiters(false, "", ";");
-		tokenizer<char_delimiters_separator<char>> t(line, delimiters);
-		for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
-			string s = *i;
-			trim(s);
-			
-			//Make sure we didn't get an empty statement
-			if(!s.empty()) {
-				reader.read(s);
-			}
+		startIndex = endIndex + 1;
+		endIndex = line.find(";", startIndex);
+		
+		cout << "semicolon" << endl;
+		if(endIndex == string::npos) {
+			break;
 		}
 		
 	}
+	const string statement = line.substr(startIndex, endIndex);
+	reader.read(statement);
+	*/
+	
+	bool result = true;
+	
+	//Split by the semicolon and remove trailing spaces
+	char_delimiters_separator<char> delimiters(false, "", ";");
+	tokenizer<char_delimiters_separator<char>> t(statements, delimiters);
+	for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
+		string statement = *i;
+		trim(statement);
+		
+		//Make sure we didn't get an empty statement
+		if(!statement.empty()) {
+			result = read(statement);
+		}
+	}
+	return result;
 }
-
+bool Reader::read(const string& statement) {
+	Operation* op = parse(statement);
+	//Execute the operation
+	return op->execute();
+}
 Operation* Reader::parse(const string& statement) {
 	//Keep vectors in case we get a Chain
 	vector<Operation*> operations;
@@ -118,11 +127,6 @@ Operation* Reader::parse(const string& statement) {
 	
 	op->print(parent->dbg);
 	return op;	
-}
-bool Reader::read(const string& statement) {
-	Operation* op = parse(statement);
-	//Execute the operation
-	return op->execute();
 }
 //Create an operation based on the arguments we just processed. We always have at least one argument.
 Operation* Reader::createOperation(const vector<string>& arguments) {

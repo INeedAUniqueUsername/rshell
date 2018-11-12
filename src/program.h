@@ -51,9 +51,7 @@ class Program {
 			//delete login;		//For some reason, this always crashes the program
 		}
 	public:
-		Program(istream& in, ostream& out, ostream& dbg) : in(in), out(out), dbg(dbg) {
-			
-		}
+		Program(istream& in, ostream& out, ostream& dbg) : in(in), out(out), dbg(dbg) {}
 		void run();
 		void close() {
 			//End the program 
