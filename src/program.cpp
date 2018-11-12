@@ -51,13 +51,17 @@ void Program::run() {
 		for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
 			string s = *i;
 			trim(s);
-			reader.read(s);
+			
+			//Make sure we didn't get an empty statement
+			if(!s.empty()) {
+				reader.read(s);
+			}
 		}
 		
 	}
 }
 
-bool Reader::read(const string& statement) {
+Operation* Reader::parse(const string& statement) {
 	//Keep vectors in case we get a Chain
 	vector<Operation*> operations;
 	vector<Connector*> connectors;
@@ -107,14 +111,18 @@ bool Reader::read(const string& statement) {
 	if(operations.size() == 1) {
 		parent->dbg << "Operation Type: Command" << endl;
 		op = operations.at(0);
-	} else {
+	} else if(operations.size() > 0){
 		parent->dbg << "Operation Type: Chain" << endl;
 		op = new Chain(operations, connectors);
 	}
 	
 	op->print(parent->dbg);
+	return op;	
+}
+bool Reader::read(const string& statement) {
+	Operation* op = parse(statement);
 	//Execute the operation
-	op->execute();
+	return op->execute();
 }
 //Create an operation based on the arguments we just processed. We always have at least one argument.
 Operation* Reader::createOperation(const vector<string>& arguments) {

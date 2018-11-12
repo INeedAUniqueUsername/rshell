@@ -13,12 +13,17 @@ class Operation;
 class Reader {
 	private:
 		Program *parent;
-		Operation* createOperation(const vector<string>& parameters);
+		
+		//Create a Command given arguments
+		Operation* createOperation(const vector<string>& arguments);
 	public:
-		Reader(Program *parent) : parent(parent) {
-			
-		}
+		Reader(Program *parent) : parent(parent) { }
+		
+		//Parse a statement and execute it, returning the result
 		bool read(const string& statement);
+		
+		//Parse a statement to create an Operation
+		Operation* parse(const string& statement);
 };
 
 #endif
