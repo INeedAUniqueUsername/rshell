@@ -45,7 +45,7 @@ void Program::run() {
 		reader.read(statement);
 		*/
 		
-		
+		//Split by the semicolon and remove trailing spaces
 		char_delimiters_separator<char> delimiters(false, "", ";");
 		tokenizer<char_delimiters_separator<char>> t(line, delimiters);
 		for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
@@ -63,7 +63,7 @@ bool Reader::read(const string& statement) {
 	vector<Connector*> connectors;
 	
 	//Store the arguments for the Command we are currently parsing
-	//This vector includes the executable at the front. We'll find it when we execute
+	//This vector includes the executable at the front.
 	vector<string> arguments;
 	char_delimiters_separator<char> delimiters(false, "", " ");
 	tokenizer<char_delimiters_separator<char>> t(statement, delimiters);
@@ -116,11 +116,13 @@ bool Reader::read(const string& statement) {
 	//Execute the operation
 	op->execute();
 }
-Operation* Reader::createOperation(const vector<string>& parameters) {
-	parent->dbg << "Command: " << parameters.at(0) << endl;
-	if(parameters.at(0).compare("exit") == 0) {
+//Create an operation based on the arguments we just processed. We always have at least one argument.
+Operation* Reader::createOperation(const vector<string>& arguments) {
+	parent->dbg << "Command: " << arguments.at(0) << endl;
+	if(arguments.at(0).compare("exit") == 0) {
+		//Exit is a special command
 		return new Exit(parent);
 	} else {
-		return new Command(parameters);
+		return new Command(arguments);
 	}
 }
