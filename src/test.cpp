@@ -62,6 +62,28 @@ TEST(CommandTest, ExecuteTest) {
 
 	EXPECT_EQ("hello world\n", output);
 }
+TEST(CommandTest, SourceTest) {
+	Program* p = new Program();
+	Reader parser(p);
+	
+	ostringstream s;	
+	Operation* op;
+	
+	op = parser.parse("ls -a && exit || echo aaa");
+	op->print(s);
+	EXPECT_EQ(s.str(), "ls -a && exit || echo aaa");
+	s.str("");
+	
+	op = parser.parse("ls      -a        &&     exit     || aaa");
+	op->print(s);
+	EXPECT_EQ(s.str(), "ls -a && exit || aaa");
+	s.str("");
+	
+	op = parser.parse("ls   -a #3.14159 || exit && abc");
+	op->print(s);
+	EXPECT_EQ(s.str(), "ls -a");
+	s.str("");
+}
 TEST(ChainTest, SuccessEchoTest) {
 	vector<Operation*> operations;
 	vector<Connector*> connectors;
@@ -123,6 +145,28 @@ TEST(ChainTest, FailEchoTest) {
 	EXPECT_EQ("", output);
 
 
+}
+TEST(ChainTest, SourceTest) {
+	Program* p = new Program();
+	Reader parser(p);
+	
+	ostringstream s;	
+	Operation* op;
+	
+	op = parser.parse("ls -a      &&  ls");
+	op->print(s);
+	EXPECT_EQ(s.str(), "ls -a && ls");
+	s.str("");
+	
+	op = parser.parse("ls -a #3.14159");
+	op->print(s);
+	EXPECT_EQ(s.str(), "ls -a");
+	s.str("");
+	
+	op = parser.parse("ls             -a       #                                  ");
+	op->print(s);
+	EXPECT_EQ(s.str(), "ls -a");
+	s.str("");
 }
 
 int main (int argc, char **argv) {
