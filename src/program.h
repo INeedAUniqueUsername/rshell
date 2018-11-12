@@ -17,6 +17,7 @@ using namespace std;
 class Program {
 	friend Reader;
 	private:
+		//Customizable streams for debugging
 		istream& in;
 		ostream& out;
 		ostream& dbg;
@@ -50,6 +51,7 @@ class Program {
 			//delete login;		//For some reason, this always crashes the program
 		}
 	public:
+		Program() : in(cin), out(cout), dbg(cerr) {}
 		Program(istream& in, ostream& out, ostream& dbg) : in(in), out(out), dbg(dbg) {}
 		void run();
 		void close() {
