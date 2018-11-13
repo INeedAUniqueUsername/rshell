@@ -28,11 +28,10 @@ void Program::run() {
 bool Reader::readLine(const string& line) {
 	//Delete everything past the comment
 	string statements = line;
-	unsigned comment = line.find("#", 0);
+	unsigned comment = line.find('#', 0);
 	if(comment != string::npos) {
 		statements = line.substr(0, comment - 1);
 	}
-	
 	
 	/*
 	auto startIndex = 0;

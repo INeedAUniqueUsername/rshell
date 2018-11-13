@@ -158,7 +158,7 @@ TEST(ChainTest, SourceTest) {
 	EXPECT_EQ(s.str(), "ls -a && ls");
 	s.str("");
 	
-	op = parser.parse("ls -a #3.14159");
+	op = parser.parse("ls -a");
 	op->print(s);
 	EXPECT_EQ(s.str(), "ls -a");
 	s.str("");
