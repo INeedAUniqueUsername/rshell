@@ -7,4 +7,4 @@ rshell is a basic shell with the purpose of executing programs followed by argum
 
 ## Known Bugs
 - String arguments are not properly handled as quotes are treated as regular characters.
-- Comments are not properly removed from lines, but this does not affect the apparent execution of the program.
+- `cd` does not work
