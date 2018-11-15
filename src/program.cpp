@@ -71,8 +71,11 @@ bool Reader::readLine(const string& line) {
 }
 bool Reader::read(const string& statement) {
 	Operation* op = parse(statement);
-	//Execute the operation
-	return op->execute();
+	if(op) {
+		//Execute the operation
+		return op->execute();		
+	}
+
 }
 Operation* Reader::parse(const string& statement) {
 	//Keep vectors in case we get a Chain
@@ -91,10 +94,20 @@ Operation* Reader::parse(const string& statement) {
 		//If we have a connector, then we are done parsing the current Command
 		if(s == "&&") {
 			connector = true;
+			if(arguments.size() == 0) {
+				parent->out << "Error: Unexpected connectors. Statement not executed." << endl;
+				return 0;
+			}
+			
 			operations.push_back(createOperation(arguments));
 			arguments.clear();
 			connectors.push_back(new Success());
 		} else if(s == "||") {
+			if(arguments.size() == 0) {
+				parent->out << "Error: Unexpected connectors. Statement not executed." << endl;
+				return 0;
+			}
+			
 			connector = true;
 			operations.push_back(createOperation(arguments));
 			arguments.clear();
@@ -104,37 +117,42 @@ Operation* Reader::parse(const string& statement) {
 			arguments.push_back(s);
 		}
 		
+		/*
 		if(connector && connectors.size() > operations.size()) {
 			//Make sure that we have a proper number of connectors
 			parent->dbg << "Error: Only one connector allowed between pairs of commands" << endl;
+			
 		}
+		*/
 	}
 	//Don't forget to check for a command at the end
 	if(arguments.size() > 0) {
-		parent->dbg << "Added last command" << endl;
+		//parent->dbg << "Added last command" << endl;
 		operations.push_back(createOperation(arguments));
 		arguments.clear();
 	}
-	
+	/*
 	if(connectors.size() != (operations.size() - 1)) {
 		//Make sure that we have a proper number of connectors
-		parent->dbg << "Error: Only one connector allowed between pairs of commands" << endl;
+		//parent->dbg << "Error: Only one connector allowed between pairs of commands" << endl;
 	}
+	*/
 	Operation *op = 0;
+	
 	if(operations.size() == 1) {
-		parent->dbg << "Operation Type: Command" << endl;
+		//parent->dbg << "Operation Type: Command" << endl;
 		op = operations.at(0);
 	} else if(operations.size() > 0){
-		parent->dbg << "Operation Type: Chain" << endl;
+		//parent->dbg << "Operation Type: Chain" << endl;
 		op = new Chain(operations, connectors);
 	}
 	
-	op->print(parent->dbg);
+	//op->print(parent->dbg);
 	return op;	
 }
 //Create an operation based on the arguments we just processed. We always have at least one argument.
 Operation* Reader::createOperation(const vector<string>& arguments) {
-	parent->dbg << "Command: " << arguments.at(0) << endl;
+	//parent->dbg << "Command: " << arguments.at(0) << endl;
 	if(arguments.at(0).compare("exit") == 0) {
 		//Exit is a special command
 		return new Exit(parent);

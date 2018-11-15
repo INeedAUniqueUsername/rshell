@@ -129,7 +129,7 @@ class Exit : public Operation {
 		Exit(Program *parent) : parent(parent) {}
 		bool execute();
 		void print(ostream& out) {
-			out << "Exit";
+			out << "exit";
 		}
 };
 

@@ -6,6 +6,7 @@
 #include<string.h>
 #include<boost/tokenizer.hpp>
 #include<string>
+#include<sstream>
 using namespace std;
 
 #ifndef __PROGRAM_H__
