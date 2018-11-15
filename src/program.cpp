@@ -30,7 +30,7 @@ bool Reader::readLine(const string& line) {
 	string statements = line;
 	unsigned comment = line.find('#', 0);
 	if(comment != string::npos) {
-		statements = line.substr(0, comment - 1);
+		statements = line.substr(0, comment);
 	}
 	
 	/*
