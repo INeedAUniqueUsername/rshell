@@ -16,7 +16,7 @@ ADD_EXECUTABLE(
 
 ADD_EXECUTABLE(
 	test
-	src/test.cpp
+	tests/test.cpp
 	src/program.cpp
 	src/operation.cpp
 )

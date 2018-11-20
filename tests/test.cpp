@@ -1,6 +1,6 @@
-#include "operation.h"
-#include "program.h"
-#include "reader.h"
+#include "../src/operation.h"
+#include "../src/program.h"
+#include "../src/reader.h"
 
 #include "gtest/gtest.h"
 

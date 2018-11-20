@@ -42,6 +42,22 @@ class Operation {
 		virtual bool execute() = 0;
 		virtual void print(ostream& out) = 0;
 };
+/*
+class Pair : public Operation {
+	protected:
+		Operation *op1, *op2;
+		Connector* connector;
+	public:
+		Pair(Operation *op1, Operation *op2, Connector *connector) : op1(op1), op2(op2), connector(connector) {}
+		bool execute() {
+			bool result = op1->execute();
+			if(connector->status(result)) {
+				result = op2->execute();
+			}
+			return result;
+		}
+};
+*/
 class Chain : public Operation {
 	protected:
 		vector<Operation*> operations;
@@ -51,17 +67,16 @@ class Chain : public Operation {
 	public:
 		Chain(vector<Operation*> operations, vector<Connector*> connectors) : operations(operations), connectors(connectors) {}
 		bool execute() {
-			bool result = true;
-			//Alternate between sub-operations and connectors in sequence
-			for(unsigned i = 0; i < operations.size() - 1; i++) {
-				result = operations.at(i)->execute();
-				//If connector says to stop, then return the result of the latest operation
-				if(!connectors.at(i)->status(result)) {
-					return result;
+			//First operation always executes
+			bool result = operations.at(0)->execute();
+			
+			for(unsigned i = 1; i < operations.size(); i++) {
+				//We execute this command if the previous result satisfies the connector
+				if(connectors.at(i - 1)->status(result)) {
+					result = operations.at(i)->execute();
 				}
 			}
-			//Otherwise, return the result of the last Operation
-			return operations.at(operations.size() - 1)->execute();
+			return result;
 		}
 		void print(ostream& out) {
 			//Print out Operations and Connectors
