@@ -15,140 +15,27 @@ void Program::run() {
 	out << "rshell" << endl;
 	out << "Created by Alex Chen and Kyle Tran for CS100" << endl;
 	
-	Reader parser(this);
 	while(true) {
 		printInfo();
 		out << "$ ";
 		
 		string line;
 		getline(in, line);
-		parser.readLine(line);
+		Reader parser(this, line);
+		
 	}
 }
-bool Reader::readLine(const string& line) {
+Operation* Reader::parseLine() {
 	//Delete everything past the comment
-	string statements = line;
 	unsigned comment = line.find('#', 0);
 	if(comment != string::npos) {
-		statements = line.substr(0, comment);
+		line = line.substr(0, comment);
 	}
-	
-	/*
-	auto startIndex = 0;
-	auto endIndex = line.find(";", startIndex);
-	while(endIndex != string::npos) {
-		const string statement = line.substr(startIndex, endIndex);
-		reader.read(statement);
-		
-		startIndex = endIndex + 1;
-		endIndex = line.find(";", startIndex);
-		
-		cout << "semicolon" << endl;
-		if(endIndex == string::npos) {
-			break;
-		}
-		
-	}
-	const string statement = line.substr(startIndex, endIndex);
-	reader.read(statement);
-	*/
-	
-	bool result = true;
-	
-	//Split by the semicolon and remove trailing spaces
-	char_delimiters_separator<char> delimiters(false, "", ";");
-	tokenizer<char_delimiters_separator<char>> t(statements, delimiters);
-	for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
-		string statement = *i;
-		trim(statement);
-		
-		//Make sure we didn't get an empty statement
-		if(!statement.empty()) {
-			result = read(statement);
-		}
-	}
-	return result;
+	Operation* op = parse();
+	return op;
 }
-bool Reader::read(const string& statement) {
-	Operation* op = parse(statement);
-	if(op) {
-		//Execute the operation
-		return op->execute();		
-	}
-
-}
-Operation* Reader::parse(const string& statement) {
-	//Keep vectors in case we get a Chain
-	vector<Operation*> operations;
-	vector<Connector*> connectors;
+Operation* Reader::parse() {
 	
-	//Store the arguments for the Command we are currently parsing
-	//This vector includes the executable at the front.
-	vector<string> arguments;
-	char_delimiters_separator<char> delimiters(false, "", " ");
-	tokenizer<char_delimiters_separator<char>> t(statement, delimiters);
-	for(tokenizer<>::iterator i = t.begin(); i != t.end(); ++i) {
-		string s = *i;
-		
-		bool connector = false;
-		//If we have a connector, then we are done parsing the current Command
-		if(s == "&&") {
-			connector = true;
-			if(arguments.size() == 0) {
-				parent->out << "Error: Unexpected connectors. Statement not executed." << endl;
-				return 0;
-			}
-			
-			operations.push_back(createOperation(arguments));
-			arguments.clear();
-			connectors.push_back(new Success());
-		} else if(s == "||") {
-			if(arguments.size() == 0) {
-				parent->out << "Error: Unexpected connectors. Statement not executed." << endl;
-				return 0;
-			}
-			
-			connector = true;
-			operations.push_back(createOperation(arguments));
-			arguments.clear();
-			connectors.push_back(new Failure());
-		} else {
-			//Otherwise, we have a regular argument
-			arguments.push_back(s);
-		}
-		
-		/*
-		if(connector && connectors.size() > operations.size()) {
-			//Make sure that we have a proper number of connectors
-			parent->dbg << "Error: Only one connector allowed between pairs of commands" << endl;
-			
-		}
-		*/
-	}
-	//Don't forget to check for a command at the end
-	if(arguments.size() > 0) {
-		//parent->dbg << "Added last command" << endl;
-		operations.push_back(createOperation(arguments));
-		arguments.clear();
-	}
-	/*
-	if(connectors.size() != (operations.size() - 1)) {
-		//Make sure that we have a proper number of connectors
-		//parent->dbg << "Error: Only one connector allowed between pairs of commands" << endl;
-	}
-	*/
-	Operation *op = 0;
-	
-	if(operations.size() == 1) {
-		//parent->dbg << "Operation Type: Command" << endl;
-		op = operations.at(0);
-	} else if(operations.size() > 0){
-		//parent->dbg << "Operation Type: Chain" << endl;
-		op = new Chain(operations, connectors);
-	}
-	
-	//op->print(parent->dbg);
-	return op;	
 }
 //Create an operation based on the arguments we just processed. We always have at least one argument.
 Operation* Reader::createOperation(const vector<string>& arguments) {
