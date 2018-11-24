@@ -13,16 +13,25 @@ class Operation;
 #include "operation.h"
 
 enum TokenTypes {
-	
+	//Test Chains
 	OpenBracket,
 	CloseBracket,
+	
+	//Chains
 	OpenParen,
 	CloseParen,
+	
+	//Connectors
 	ConnectorAnd,
 	ConnectorOr,
 	ConnectorSemicolon,
+	
+	//Arguments
+	CharBackslash,
+	CharQuote,
 	CharSpace,
 	StringArg,
+	
 	End
 };
 class Token {
@@ -64,6 +73,10 @@ class Reader {
 				return Token("||", TokenTypes::ConnectorOr);
 			} else if(LineContainsHere(";")) {
 				return Token(";", TokenTypes::ConnectorSemicolon);
+			} else if(LineContainsHere("\\")) {
+				return Token("\\", TokenTypes::CharBackslash);
+			} else if(LineContainsHere("\"")) {
+				return Token("\"", TokenTypes::CharQuote);
 			} else if(LineContainsHere(" ")) {
 				return Token(" ", TokenTypes::CharSpace);
 			} else if(isalpha(line.at(index))) {
@@ -83,8 +96,9 @@ class Reader {
 		}
 		
 		//General parsing method
-		Operation* parse();
+		Operation* Parse();
 		
+		//Subfunction of Parse
 		//Parse the arguments of a command.
 		//Creates an Exit command if the first parameter is Exit.
 		//Creates a Test command if the first parameter is Test.
@@ -92,8 +106,21 @@ class Reader {
 		//Terminates when we reach a Connector, Closing Parenthesis, Closing Bracket, or End.
 		//Termination does not advance the index.
 		//Creates an error if it reaches an Opening Parenthesis or Opening Bracket.
-		Operation* parseCommand();
+		Operation* ParseCommand();
 		
+		//Subfunction of Parse
+		//Parses a quoted or unquoted argument, removing the surrounding quotes
+		//Consecutive non-separated arguments are treated as one: "aa" == "a"a == a"a" == "a""a" == "a""""a" == "a""""""a"
+		//An argument is a series of consecutive characters and strings delimited by CharSpace or End
+		string ParseArgument();
+	
+		//Subfunction of ParseArgument
+		//Parses a series of characters delimited by CharQuote
+		//Note that when this gets called, the index should be directly after the opening quote
+		//The result does not include the surrounding CharQuotes
+		string ParseQuoted();
+	
+		//Subfunction of Parse
 		//The default parsing method,
 		//Creates a Chain of Commands and Connectors
 		//Ignores spaces
@@ -105,11 +132,13 @@ class Reader {
 		//Creates a sub connector upon reaching a Connector.
 		//Creates a sub chain upon reaching an opening parenthesis.
 		//Creates a sub test chain upon reaching an opening bracket.
-		Operation* parseChain();
+		Operation* ParseChain();
 		
+		//Subfunction of ParseChain and ParseTestChain
 		//Parses a single connector and returns its type
 		Connector* ParseConnector();
 		
+		//Subfunction of Parse
 		//Creates a Test chain of Commands and Connectors within brackets
 		//Ignores spaces
 		//Terminates upon reaching a Closing Bracket or End.
@@ -120,7 +149,7 @@ class Reader {
 		//Creates a sub connector upon reaching a Connector.
 		//Creates a sub chain upon reaching an opening parenthesis.
 		//Creates a sub test chain upon reaching an Opening Bracket.
-		Operation* parseTestChain();
+		Operation* ParseTestChain();
 	public:
 		Reader(Program *parent, string line) : parent(parent), index(0), line(line) { }
 		
