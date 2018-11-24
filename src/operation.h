@@ -37,6 +37,16 @@ class Failure : public Connector {
 			out << "||";
 		}
 };
+class Any : public Connector {
+	public:
+		Any() {}
+		bool status(bool result) {
+			return true;
+		}
+		void print(ostream& out) {
+			out << ";";
+		}
+}
 class Operation {
 	public:
 		virtual bool execute() = 0;
