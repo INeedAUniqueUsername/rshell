@@ -8,6 +8,7 @@ using namespace std;
 #define __READER_H__
 
 class Operation;
+class Connector;
 
 #include "program.h"
 #include "operation.h"
@@ -83,11 +84,12 @@ class Reader {
 				//Otherwise, we take any non-space chars and combine them into a string argument
 				string result = "";
 				result.push_back(line.at(index));
-				index++;
+				int index_end = index;
+				index_end++;
 				char c = 0;
-				while(index < line.size() &&
-						(c = line.at(index)) != ' ') {
-					index++;
+				while(index_end < line.size() &&
+						isalpha(c = line.at(index_end))) {
+					index_end++;
 					result.push_back(c);
 				}
 				return Token(result, TokenTypes::StringArg);
@@ -143,18 +145,21 @@ class Reader {
 		//Creates a sub connector upon reaching a Connector.
 		//Creates a sub chain upon reaching an opening parenthesis.
 		//Creates a sub test upon reaching an opening bracket.
-		//Operation* ParseChain();
+		Operation* ParseChain();
 		
 		//Subfunction of ParseChain
 		//Parses a single connector and returns its type
 		Connector* ParseConnector();
 	public:
-		Reader(Program *parent, string line) : parent(parent), index(0), line(line) {
+		Reader(Program *parent, const string& line) : parent(parent), index(0), line(line) {
 			//Delete everything past the comment
-			unsigned comment = line.find('#', 0);
+			unsigned comment = this->line.find('#', 0);
 			if(comment != string::npos) {
-				line = line.substr(0, comment);
+				this->line = line.substr(0, comment);
 			}
+			ostringstream result;
+			result << "(" << line << ")";
+			this->line = result.str();
 		}
 		
 		

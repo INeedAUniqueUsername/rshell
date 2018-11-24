@@ -6,8 +6,10 @@
 #include<vector>
 #include<stdexcept>
 using namespace boost;
+using namespace std;
 
-#define DEBUG_THROW(x) throw new invalid_argument(x);
+//#define PRINT(x) cout << x << endl;
+#define PRINT(x)
 
 #include "program.h"
 #include "reader.h"
@@ -25,19 +27,27 @@ void Program::run() {
 		string line;
 		getline(in, line);
 		Reader parser(this, line);
-		parser.ParseLine()->execute();
+		
+		Operation* op = 0;
+		try {
+			op = parser.ParseLine();
+		} catch(const invalid_argument& e) {
+			out << e.what() << endl;
+		}
+		if(op) {
+			op->execute();
+		} else {
+			out << "Command not executed." << endl;
+		}
 	}
 }
-
 Operation* Reader::ParseLine() {
-	if(index > 0) {
-		DEBUG_THROW("Please create a new Reader");
-	}
+	PRINT("Line: " + line);
 	Operation* result = Parse();
+	index = 0;
 	return result;
 }
 Operation* Reader::Parse() {
-
 	Start:
 	Token t = Read();
 	switch(t.type) {
@@ -46,29 +56,30 @@ Operation* Reader::Parse() {
 			UpdateIndex(t);
 			return ParseTestBracket();
 		case TokenTypes::CloseBracket:
-			//Unexpected, so we ignore and continue
+			//Unexpected
 			UpdateIndex(t);
-			DEBUG_THROW("unexpected closing bracket");
-			goto Start;
+			throw invalid_argument("ERROR: Unexpected closing bracket");
+			return 0;
 		case TokenTypes::OpenParen:
 			//We have a chain
 			UpdateIndex(t);
 			return ParseChain();
 		case TokenTypes::CloseParen:
-			//Unexpected, so we ignore and continue
+			//Unexpected
 			UpdateIndex(t);
-			DEBUG_THROW("unexpected closing parenthesis");
-			goto Start;
+			throw invalid_argument("ERROR: Unexpected closing parenthesis");
+			return 0;
 		case TokenTypes::ConnectorAnd:
 		case TokenTypes::ConnectorOr:
 		case TokenTypes::ConnectorSemicolon:
-			//Unexpected (since we do not parse Chains), so we ignore and continue
+			//Unexpected (since we do not parse Chains)
 			UpdateIndex(t);
-			DEBUG_THROW("unexpected connector");
-			goto Start;
+			throw invalid_argument("ERROR: Unexpected connector");
+			return 0;
 		case TokenTypes::CharSpace:
 			//We don't care about spaces here
 			UpdateIndex(t);
+			PRINT("Space");
 			goto Start;
 		case TokenTypes::CharBackslash:
 		case TokenTypes::CharQuote:
@@ -88,22 +99,26 @@ Operation* Reader::ParseChain() {
 	
 	Parse:
 	Token t = Read();
+	PRINT("ParseChain: Index = " << index);
 	switch(t.type) {
 		case TokenTypes::OpenBracket:
 			//We have a test command
-			operations.add(ParseTestBracket());
+			PRINT("ParseChain: Sub test");
+			operations.push_back(ParseTestBracket());
 			goto Parse;
 		case TokenTypes::CloseBracket:
 			//We didn't expect this
-			DEBUG_THROW("unexpected closing bracket");
-			goto Parse;
+			throw invalid_argument("ERROR: Unexpected closing bracket");
+			return 0;
 			
 		case TokenTypes::OpenParen:
 			//We have a subchain
+			PRINT("ParseChain: Subchain");
 			UpdateIndex(t);
-			operations.add(ParseChain());
+			operations.push_back(ParseChain());
 			goto Parse;
 		case TokenTypes::CloseParen:
+			PRINT("ParseChain: CloseParen");
 			//If we reach the closing parenthesis, then we are done
 			UpdateIndex(t);
 			goto Done;
@@ -111,12 +126,13 @@ Operation* Reader::ParseChain() {
 		case TokenTypes::ConnectorAnd:
 		case TokenTypes::ConnectorOr:
 		case TokenTypes::ConnectorSemicolon:
+			PRINT("ParseChain: Connector");
 			if(connectors.size() >= operations.size()) {
 				//We shouldn't have more connectors than operations
-				//But if we do, then we just ignore the extras
-				DEBUG_THROW("ERROR: unexpected connector");
+				throw invalid_argument("ERROR: Unexpected connector");
+				return 0;
 			} else {
-				connectors.add(ParseConnector());
+				connectors.push_back(ParseConnector());
 			}
 			goto Parse;
 			
@@ -124,28 +140,31 @@ Operation* Reader::ParseChain() {
 		case TokenTypes::CharQuote:
 		case TokenTypes::StringArg:
 			//We have the first argument of a command
-			operations.add(ParseCommand());
+			PRINT("ParseChain: Argument");
+			operations.push_back(ParseCommand());
 			goto Parse;
 		case TokenTypes::CharSpace:
 			//Ignore the space
+			PRINT("ParseChain: Space");
 			UpdateIndex(t);
 			goto Parse;
 			
 		case TokenTypes::End:
 			//We didn't expect this
-			DEBUG_THROW("ERROR: unexpected end of line");
-			goto Done;
+			throw invalid_argument("ERROR: Unexpected end of line in ParseChain");
+			return 0;
 	}
 	
 	Done:
 	
 	//If we have a hanging connector, then ERROR
 	if(connectors.size() >= operations.size()) {
-		DEBUG_THROW("ERROR: Unexpected hanging connector");
-		connectors.add(ParseConnector());
+		throw invalid_argument("ERROR: Hanging connector");
+		return 0;
 	} else if(operations.size() == 0) {
 		//This chain is empty
-		DEBUG_THROW("ERROR: Empty chain");
+		throw invalid_argument("ERROR: Empty chain");
+		return 0;
 	} else if(operations.size() == 1) {
 		return operations[0];
 	} else {
@@ -156,49 +175,118 @@ Connector* Reader::ParseConnector() {
 	Token t = Read();
 	switch(t.type) {
 		case TokenTypes::ConnectorAnd:
-			UpdateIndex(t)
-			return Success();
+			UpdateIndex(t);
+			return new Success();
 		case TokenTypes::ConnectorOr:
-			UpdateIndex(t)
-			return Failure();	
+			UpdateIndex(t);
+			return new Failure();	
 		case TokenTypes::ConnectorSemicolon:
-			UpdateIndex(t)
-			return Any();
+			UpdateIndex(t);
+			return new Any();
 		default:
-			DEBUG_THROW("expected connector);
+			throw invalid_argument("ERROR: Expected connector");
+			return 0;
 	}
 }
 Operation* Reader::ParseCommand() {
+	vector<string> args;
+	Read:
+	Token t = Read();
+	switch(t.type) {
+		case TokenTypes::ConnectorSemicolon:
+		case TokenTypes::ConnectorAnd:
+		case TokenTypes::ConnectorOr:
+		case TokenTypes::CloseParen:
+		case TokenTypes::CloseBracket:
+		case TokenTypes::End:
+			//Delimited by end of line, closing parenthesis, or closing connector
+			goto Done;
+		case TokenTypes::CharSpace:
+			UpdateIndex(t);
+			goto Read;
+			
+		case TokenTypes::CharBackslash:
+		case TokenTypes::CharQuote:
+		case TokenTypes::StringArg:
+			args.push_back(ParseArgument());
+			goto Read;
+	}
 	
+	Done:
+	string exe = args[0];
+	if(exe == "exit") {
+		return new Exit();
+	} else if(exe == "test") {
+		throw invalid_argument("TO DO: not implemented");
+	} else {
+		return new Command(args);
+	}
 }
 string Reader::ParseArgument() {
+	PRINT("ParseArgument");
+	string result = "";
+	Read:
+	Token t = Read();
+	switch(t.type) {
+		case TokenTypes::CharBackslash:
+			UpdateIndex(t);
+			result.push_back(ParseBackslash());
+			goto Read;
+		case TokenTypes::CharQuote:
+			UpdateIndex(t);
+			result += ParseQuoted();
+			goto Read;
+		case TokenTypes::OpenParen:
+		case TokenTypes::CloseParen:
+		case TokenTypes::OpenBracket:
+		case TokenTypes::CloseBracket:
+		case TokenTypes::ConnectorSemicolon:
+		case TokenTypes::ConnectorAnd:
+		case TokenTypes::ConnectorOr:
+		case TokenTypes::End:
+		case TokenTypes::CharSpace:
+			//Delimited by end of line, space, or connector
+			goto Done;
+		default:
+			UpdateIndex(t);
+			result += t.value;
+			goto Read;
+	}
 	
+	Done:
+		
+	PRINT("ParseArgument: Result = " << result)
+	return result;
 }
 string Reader::ParseQuoted() {
-	Token t
+	//We build a string from characters until we find a closing quote
+	string result = "";
+	Read:
+	Token t = Read();
+	switch(t.type) {
+		case TokenTypes::CharBackslash:
+			UpdateIndex(t);
+			result.push_back(ParseBackslash());
+			goto Read;
+		case TokenTypes::CharQuote:
+			UpdateIndex(t);
+			return result;
+		case TokenTypes::End:
+			throw invalid_argument("ERROR: Unexpected end of line");
+		default:
+			UpdateIndex(t);
+			result += t.value;
+			goto Read;
+	}
 }
 char Reader::ParseBackslash() {
+	//Escapes a character
 	char result = line.at(index);
 	index++;
 	return result;
 }
-Connector* Reader::ParseConnector() {
-	Token t = Read();
-	switch(t.type) {
-		case TokenTypes::ConnectorAnd:
-			UpdateIndex(t)
-			return Success();
-		case TokenTypes::ConnectorOr:
-			UpdateIndex(t)
-			return Failure();	
-		case TokenTypes::ConnectorSemicolon:
-			UpdateIndex(t)
-			return Any();
-		default:
-			DEBUG_THROW("expected connector);
-	}
-}
 Operation* Reader::ParseTestBracket() {
+	throw invalid_argument("TO DO: not implemented");
 	return 0;
 }
 

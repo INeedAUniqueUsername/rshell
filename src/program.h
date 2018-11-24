@@ -55,6 +55,9 @@ class Program {
 		Program() : in(cin), out(cout), dbg(cerr) {}
 		Program(istream& in, ostream& out, ostream& dbg) : in(in), out(out), dbg(dbg) {}
 		void run();
+		void error(const string& message) {
+			out << message << endl;
+		}
 		void close() {
 			//out << "rshell is exiting..." << endl;
 			//End the program 
