@@ -79,14 +79,14 @@ class Reader {
 				return Token("\"", TokenTypes::CharQuote);
 			} else if(LineContainsHere(" ")) {
 				return Token(" ", TokenTypes::CharSpace);
-			} else if(isalpha(line.at(index))) {
+			} else {
+				//Otherwise, we take any non-space chars and combine them into a string argument
 				string result = "";
 				result.push_back(line.at(index));
 				index++;
 				char c = 0;
 				while(index < line.size() &&
-						isalpha((c = line.at(index)))
-						) {
+						(c = line.at(index)) != ' ') {
 					index++;
 					result.push_back(c);
 				}
@@ -96,6 +96,8 @@ class Reader {
 		}
 		
 		//General parsing method
+		//Entry point to parsing the line
+		//We expect to parse a Command, Chain or a Test (depending on the first token)
 		Operation* Parse();
 		
 		//Subfunction of Parse
@@ -120,6 +122,15 @@ class Reader {
 		//The result does not include the surrounding CharQuotes
 		string ParseQuoted();
 	
+		//Parse an escaped character preceded by backslash
+		//When called, the index should be directly after the backslash
+		char ParseBackslash();
+		
+		
+		//Parses a test command enclosed in brackets
+		//When called, the index should be after the opening bracket
+		Operation* ParseTestBracket();
+	
 		//Subfunction of Parse
 		//The default parsing method,
 		//Creates a Chain of Commands and Connectors
@@ -131,30 +142,24 @@ class Reader {
 		//Creates a sub command upon reaching a string argument.
 		//Creates a sub connector upon reaching a Connector.
 		//Creates a sub chain upon reaching an opening parenthesis.
-		//Creates a sub test chain upon reaching an opening bracket.
-		Operation* ParseChain();
+		//Creates a sub test upon reaching an opening bracket.
+		//Operation* ParseChain();
 		
-		//Subfunction of ParseChain and ParseTestChain
+		//Subfunction of ParseChain
 		//Parses a single connector and returns its type
 		Connector* ParseConnector();
-		
-		//Subfunction of Parse
-		//Creates a Test chain of Commands and Connectors within brackets
-		//Ignores spaces
-		//Terminates upon reaching a Closing Bracket or End.
-		//Termination advances the index past the Closing Bracket.
-		//Creates an error upon reaching a Closing Parenthesis.
-		//Creates an error upon reaching too many Connectors.
-		//Creates a sub command upon reaching a string argument.
-		//Creates a sub connector upon reaching a Connector.
-		//Creates a sub chain upon reaching an opening parenthesis.
-		//Creates a sub test chain upon reaching an Opening Bracket.
-		Operation* ParseTestChain();
 	public:
-		Reader(Program *parent, string line) : parent(parent), index(0), line(line) { }
+		Reader(Program *parent, string line) : parent(parent), index(0), line(line) {
+			//Delete everything past the comment
+			unsigned comment = line.find('#', 0);
+			if(comment != string::npos) {
+				line = line.substr(0, comment);
+			}
+		}
+		
 		
 		//Parse the line to create an Operation
-		Operation* parseLine();
+		Operation* ParseLine();
 };
 
 #endif

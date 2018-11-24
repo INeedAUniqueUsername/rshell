@@ -46,7 +46,7 @@ class Any : public Connector {
 		void print(ostream& out) {
 			out << ";";
 		}
-}
+};
 class Operation {
 	public:
 		virtual bool execute() = 0;
