@@ -217,7 +217,8 @@ Operation* Reader::ParseCommand() {
 	if(exe == "exit") {
 		return new Exit();
 	} else if(exe == "test") {
-		throw invalid_argument("TO DO: not implemented");
+		return new TestCommand(args);
+		//throw invalid_argument("TO DO: not implemented");
 	} else {
 		return new Command(args);
 	}

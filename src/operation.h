@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <algorithm>
+#include <sys/stat.h>
 using namespace std;
 
 #ifndef __OPERATION_H__
@@ -155,6 +156,26 @@ class Exit : public Operation {
 		bool execute();
 		void print(ostream& out) {
 			out << "exit";
+		}
+};
+
+class TestCommand : public Operation {
+	protected:
+		vector<string> arguments;
+	public:
+		TestCommand(vector<string> arguments) :arguments(arguments) {};
+
+		bool execute() { //Returns true if the file exists (stat() == 0)
+			struct stat buf;
+			return (stat(arguments[1].c_str(), &buf) == 0);
+		}
+
+		void print(ostream& out) {
+			//Print out our arguments
+			for(unsigned i = 0; i < arguments.size() - 1; i++) {
+				out << arguments.at(i) << " ";
+			}
+			out << arguments.at(arguments.size() - 1);
 		}
 };
 
