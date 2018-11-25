@@ -11,6 +11,8 @@ using namespace std;
 //#define PRINT(x) cout << x << endl;
 #define PRINT(x)
 
+class Exit;
+
 #include "program.h"
 #include "reader.h"
 #include "operation.h"
@@ -213,9 +215,9 @@ Operation* Reader::ParseCommand() {
 	}
 	
 	Done:
-	string exe = args[0];
+	string exe = args.at(0);
 	if(exe == "exit") {
-		return new Exit();
+		return new Exit(parent);
 	} else if(exe == "test") {
 		return new TestCommand(args);
 		//throw invalid_argument("TO DO: not implemented");
@@ -287,7 +289,6 @@ char Reader::ParseBackslash() {
 	return result;
 }
 Operation* Reader::ParseTestBracket() {
-	throw invalid_argument("TO DO: not implemented");
 	return 0;
 }
 
