@@ -161,21 +161,18 @@ class Exit : public Operation {
 
 class TestCommand : public Operation {
 	protected:
-		vector<string> arguments;
+		string flag, arg;
 	public:
-		TestCommand(vector<string> arguments) :arguments(arguments) {};
+		TestCommand(const string& arg) : flag("-e"), arg(arg) {};
+		TestCommand(const string& flag, const string& arg) : flag(flag), arg(arg) {};
 
 		bool execute() { //Returns true if the file exists (stat() == 0)
 			struct stat buf;
-			return (stat(arguments[1].c_str(), &buf) == 0);
+			return (stat(arg.c_str(), &buf) == 0);
 		}
 
 		void print(ostream& out) {
-			//Print out our arguments
-			for(unsigned i = 0; i < arguments.size() - 1; i++) {
-				out << arguments.at(i) << " ";
-			}
-			out << arguments.at(arguments.size() - 1);
+			out << "[" << flag << " " << arg << "]";
 		}
 };
 

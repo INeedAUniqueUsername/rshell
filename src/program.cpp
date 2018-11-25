@@ -217,9 +217,22 @@ Operation* Reader::ParseCommand() {
 	Done:
 	string exe = args.at(0);
 	if(exe == "exit") {
-		return new Exit(parent);
+		if(args.size() > 1) {
+			throw invalid_argument("ERROR: too many arguments for exit command");
+		} else {
+			return new Exit(parent);
+		}
+		
 	} else if(exe == "test") {
-		return new TestCommand(args);
+		if(args.size() == 1) {
+			throw invalid_argument("ERROR: test expression expected");
+		} else if(args.size() == 2) {
+			return new TestCommand(args.at(1));
+		} else if(args.size() == 3) {
+			return new TestCommand(args.at(1), args.at(2));
+		} else {
+			throw invalid_argument("ERROR: too many arguments in test expression");
+		}
 		//throw invalid_argument("TO DO: not implemented");
 	} else {
 		return new Command(args);
@@ -289,6 +302,48 @@ char Reader::ParseBackslash() {
 	return result;
 }
 Operation* Reader::ParseTestBracket() {
+	vector<string> args;
+	Read:
+	Token t = Read();
+	switch(t.type) {
+		case TokenTypes::CloseBracket:
+			UpdateIndex(t);
+			goto Done;
+		
+		//We do not expect these
+		case TokenTypes::OpenBracket:
+		
+		case TokenTypes::OpenParen:
+		case TokenTypes::CloseParen:
+
+		case TokenTypes::ConnectorAnd:
+		case TokenTypes::ConnectorOr:
+		case TokenTypes::ConnectorSemicolon:
+		
+		case TokenTypes::End:
+			throw invalid_argument("ERROR: unexpected token in test expression");
+		
+		
+		case TokenTypes::CharBackslash:
+		case TokenTypes::CharQuote:
+		case TokenTypes::StringArg:
+			args.push_back(ParseArgument());
+			goto Read;
+			
+		case TokenTypes::CharSpace:
+			UpdateIndex(t);
+			goto Read;
+	}
+	
+	Done:
+	if(args.size() == 0) {
+		throw invalid_argument("ERROR: test expression expected");
+	} else if(args.size() == 1) {
+		return new TestCommand(args.at(0));
+	} else if(args.size() == 2) {
+		return new TestCommand(args.at(0), args.at(1));
+	} else {
+		throw invalid_argument("ERROR: too many arguments in test expression");
+	}
 	return 0;
 }
-
