@@ -56,6 +56,10 @@ class Reader {
 		void UpdateIndex(const Token& t) {
 			index += t.value.size();
 		}
+		
+		bool IsArgChar(char c) {
+			return isalpha(c) || c == '-' || c == '.' || c == '/';
+		}
 		//Read the token at the current position
 		Token Read() {
 			if(index >= line.size()) {
@@ -80,7 +84,7 @@ class Reader {
 				return Token("\"", TokenTypes::CharQuote);
 			} else if(LineContainsHere(" ")) {
 				return Token(" ", TokenTypes::CharSpace);
-			} else {
+			} else if(IsArgChar(line.at(index))) {
 				//Otherwise, we take any non-space chars and combine them into a string argument
 				string result = "";
 				result.push_back(line.at(index));
@@ -88,7 +92,7 @@ class Reader {
 				index_end++;
 				char c = 0;
 				while(index_end < line.size() &&
-						isalpha(c = line.at(index_end))) {
+						IsArgChar(c = line.at(index_end))) {
 					index_end++;
 					result.push_back(c);
 				}
