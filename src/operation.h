@@ -168,7 +168,26 @@ class TestCommand : public Operation {
 
 		bool execute() { //Returns true if the file exists (stat() == 0)
 			struct stat buf;
-			return (stat(arg.c_str(), &buf) == 0);
+			if (flag == "-e") {
+				return (stat(arg.c_str(), &buf) == 0);
+			}
+			else if (flag == "-f") {
+				stat(arg.c_str(), &buf);
+				if (buf.st_mode & S_IFREG) { //if a file
+					return true;
+				} else {
+					return false;
+				} 
+			}
+			else if (flag == "-d") {
+				stat(arg.c_str(), &buf);
+				if (buf.st_mode & S_IFDIR) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			
 		}
 
 		void print(ostream& out) {
