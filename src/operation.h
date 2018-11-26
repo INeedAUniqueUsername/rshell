@@ -77,6 +77,16 @@ class Chain : public Operation {
 		//We assume that we always have one less Connector than our Operations
 	public:
 		Chain(vector<Operation*> operations, vector<Connector*> connectors) : operations(operations), connectors(connectors) {}
+		~Chain() {
+			for (int i = 0; i < operations.size(); i ++) {
+				delete operations[i];
+			}
+			for (int i = 0; i < connectors.size(); i++) {
+				delete connectors[i];
+			}
+			operations.clear();
+			connectors.clear();	
+		}
 		bool execute() {
 			//First operation always executes
 			bool result = operations.at(0)->execute();
