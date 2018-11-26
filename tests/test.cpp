@@ -10,6 +10,8 @@
 
 using namespace std;
 /*
+//TO DO: Make old tests compatible with current implementation
+//TO DO: Add comment tests (note changes in source)
 TEST(CommandTest, EmptyString) {
 	vector<string> t;
 	Command test(t);

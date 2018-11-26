@@ -161,6 +161,8 @@ class Reader {
 			if(comment != string::npos) {
 				this->line = line.substr(0, comment);
 			}
+			
+			//We enclose the actual line in parentheses to make it a properly enclosed chain
 			ostringstream result;
 			result << "(" << line << ")";
 			this->line = result.str();
