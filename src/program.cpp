@@ -106,6 +106,8 @@ Operation* Reader::ParseChain() {
 		case TokenTypes::OpenBracket:
 			//We have a test command
 			PRINT("ParseChain: Sub test");
+			//Increment the index past the bracket since the function expects that
+			UpdateIndex(t);
 			operations.push_back(ParseTestBracket());
 			goto Parse;
 		case TokenTypes::CloseBracket:
