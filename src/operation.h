@@ -181,21 +181,32 @@ class TestCommand : public Operation {
 		bool execute() { //Returns true if the file exists (stat() == 0)
 			struct stat buf;
 			if (flag == "-e") {
-				return (stat(arg.c_str(), &buf) == 0);
+				if (stat(arg.c_str(), &buf) == 0) {
+					cout << "(True)" << endl;
+					return true;
+				}
+				else {
+					cout << "(False)" << endl;
+					return false;
+				}
 			}
 			else if (flag == "-f") {
 				stat(arg.c_str(), &buf);
 				if (buf.st_mode & S_IFREG) { //if a file
+					cout << "(True)" << endl;
 					return true;
 				} else {
+					cout << "(False)" << endl;
 					return false;
 				} 
 			}
 			else if (flag == "-d") {
 				stat(arg.c_str(), &buf);
 				if (buf.st_mode & S_IFDIR) {
+					cout << "(True)" << endl;
 					return true;
 				} else {
+					cout << "(False)" << endl;
 					return false;
 				}
 			}
