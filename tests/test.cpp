@@ -163,14 +163,20 @@ TEST(ChainTest, SourceTest) {
 	EXPECT_EQ(s.str(), "ls -a");
 	s.str("");
 }
+*/
+TEST(PrecendenceTest, EchoTest) {
+	//TO DO: Implement these
+	//(echo a && (echo b || (echo c || (echo d)))) -> a\nb\n
+	//echo A && echo B || echo C && echo D -> A\nB\nD\n
+	//(echo A && echo B) || (echo C && echo D) -> A\nB\n
+}
 TEST(TestCommandTest, PrintTest) {
 	string flag = "-e";
 	string arg = "/src/operation.h";
 	Operation* op = new TestCommand(flag, arg);
 
-	EXPECT_EQ("[-e /src/operation.h]", op.print(cout));
+	EXPECT_EQ("[ -e /src/operation.h ]", op.print(cout));
 }
-*/
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();

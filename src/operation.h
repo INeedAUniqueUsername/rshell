@@ -170,7 +170,6 @@ class Exit : public Operation {
 			out << "exit";
 		}
 };
-
 class TestCommand : public Operation {
 	protected:
 		string flag, arg;
@@ -214,7 +213,8 @@ class TestCommand : public Operation {
 		}
 
 		void print(ostream& out) {
-			out << "[" << flag << " " << arg << "]";
+			//NOTE: The brackets must be one space away from the arguments
+			out << "[ " << flag << " " << arg << " ]";
 		}
 };
 
