@@ -57,10 +57,7 @@ TEST(CommandTest, ExecuteTest) {
 
 	testing::internal::CaptureStdout();
 	test.execute();
-	//test.print(cout);
 	string output = testing::internal::GetCapturedStdout();
-	
-	//cout << output;
 
 	EXPECT_EQ("hello world\n", output);
 }
@@ -80,6 +77,9 @@ TEST(CommandTest, SourceTest) {
 	op->print(s);
 	EXPECT_EQ(s.str(), "ls -a && exit || aaa");
 	s.str("");
+	
+	delete p;
+	delete op;
 }
 TEST(ChainTest, SuccessEchoTest) {
 	vector<Operation*> operations;
@@ -110,6 +110,8 @@ TEST(ChainTest, SuccessEchoTest) {
 	string output = testing::internal::GetCapturedStdout();
 	
 	EXPECT_EQ("t0\nt1\n", output);
+	
+	delete op;
 }
 TEST(ChainTest, FailEchoTest) {
 	vector<Operation*> operations;
@@ -118,8 +120,6 @@ TEST(ChainTest, FailEchoTest) {
 	vector<string> arguments0;
 	vector<string> arguments1;
 	
-	//arguments0.push_back("ff");
-	//arguments0.push_back("t0");
 	arguments1.push_back("echo");
 	arguments1.push_back("t1");
 
@@ -141,7 +141,7 @@ TEST(ChainTest, FailEchoTest) {
 	
 	EXPECT_EQ("", output);
 
-
+	delete op;
 }
 TEST(ChainTest, SourceTest) {
 	Program* p = new Program();
@@ -164,6 +164,9 @@ TEST(ChainTest, SourceTest) {
 	op->print(s);
 	EXPECT_EQ(s.str(), "ls -a");
 	s.str("");
+	
+	delete p;
+	delete op;
 }
 */
 TEST(PrecendenceTest, EchoTest) {
@@ -173,11 +176,19 @@ TEST(PrecendenceTest, EchoTest) {
 	//(echo A && echo B) || (echo C && echo D) -> A\nB\n
 }
 TEST(TestCommandTest, PrintTest) {
+	//TO DO: Fix segmentation fault
+	
 	string flag = "-e";
 	string arg = "/src/operation.h";
-	Operation* op = new TestCommand(flag, arg);
-
-	EXPECT_EQ("[ -e /src/operation.h ]", op.print(cout));
+	TestCommand* op = new TestCommand(flag, arg);
+	//Print the source
+	op->print(cout);
+	//Print the result
+	op->execute();
+	
+	string output = testing::internal::GetCapturedStdout();
+	EXPECT_EQ("[ -e /src/operation.h ]", output);
+	delete op;
 }
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
