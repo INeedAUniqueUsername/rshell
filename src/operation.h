@@ -141,10 +141,12 @@ class Command : public Operation {
 		}
 		void print(ostream& out) {
 			//Print out our arguments
+			out << "(";
 			for(unsigned i = 0; i < arguments.size() - 1; i++) {
 				out << arguments.at(i) << " ";
 			}
 			out << arguments.at(arguments.size() - 1);
+			out << ")";
 		}
 };
 
