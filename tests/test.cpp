@@ -163,6 +163,13 @@ TEST(ChainTest, SourceTest) {
 	EXPECT_EQ(s.str(), "ls -a");
 	s.str("");
 }
+TEST(TestCommandTest, PrintTest) {
+	string flag = "-e";
+	string arg = "/src/operation.h";
+	Operation* op = new TestCommand(flag, arg);
+
+	EXPECT_EQ("[-e /src/operation.h]", op.print(cout));
+}
 */
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
