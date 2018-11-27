@@ -188,19 +188,50 @@ TEST(PrecendenceTest, EchoTest) {
 	//(echo a && (echo b || (echo c || (echo d)))) -> a\nb\n
 	//echo A && echo B || echo C && echo D -> A\nB\nD\n
 	//(echo A && echo B) || (echo C && echo D) -> A\nB\n
+
+	Program* p = new Program();
+	string line = "(echo a && (echo b || (echo c || (echo d))))";
+	Reader parser1(p, line);
+	Operation* op;
+
+	op = parser1.ParseLine();
+	testing::internal::CaptureStdout();
+	op->execute();
+	string output = testing::internal::GetCapturedStdout();
+	
+	EXPECT_EQ("a\nb\n", output);
+
+	line = "echo A && echo B || echo C && echo D";
+	Reader parser2(p, line);
+	op = parser2.ParseLine();
+	testing::internal::CaptureStdout();
+	op->execute();
+	output = testing::internal::GetCapturedStdout();
+
+	EXPECT_EQ("A\nB\nD\n", output);
+
+	line = "(echo A && echo B) || (echo C && echo D)";
+	Reader parser3(p, line);
+
+	op = parser3.ParseLine();
+	testing::internal::CaptureStdout();
+	op->execute();
+	output = testing::internal::GetCapturedStdout();
+	
+	EXPECT_EQ("A\nB\n", output);
+	delete p;
+	delete op;
 }
 TEST(TestCommandTest, PrintTest) {
-	//TO DO: Fix segmentation fault
 	
 	string flag = "-e";
 	string arg = "/src/operation.h";
 	TestCommand* op = new TestCommand(flag, arg);
 	//Print the source
+	testing::internal::CaptureStdout();
 	op->print(cout);
-	//Print the result
-	op->execute();
-	
 	string output = testing::internal::GetCapturedStdout();
+	
 	EXPECT_EQ("[ -e /src/operation.h ]", output);
 	delete op;
 }
