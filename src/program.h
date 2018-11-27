@@ -36,6 +36,9 @@ class Program {
 					out << "@";
 					out << hostname;
 					
+					/*
+					//Don't print cwd since it's not convenient on a small display
+					
 					//Now get the current working directory.
 					char *cwd = new char[PATH_MAX];
 					if(getcwd(cwd, PATH_MAX)) {
@@ -44,6 +47,7 @@ class Program {
 						//If we got all the way here, then we have printed the info
 					}
 					delete cwd;
+					*/
 				}
 				delete hostname;
 				
