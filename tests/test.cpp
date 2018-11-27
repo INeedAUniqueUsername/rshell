@@ -9,7 +9,7 @@
 #include <sstream>
 
 using namespace std;
-/*
+
 //TO DO: Make old tests compatible with current implementation
 //TO DO: Add comment tests (note changes in source)
 TEST(CommandTest, EmptyString) {
@@ -63,23 +63,29 @@ TEST(CommandTest, ExecuteTest) {
 }
 TEST(CommandTest, SourceTest) {
 	Program* p = new Program();
-	Reader parser(p);
+	string line1 = "ls -a && exit || echo aaa";
+	Reader parser1(p, line1);
 	
 	ostringstream s;	
-	Operation* op;
+	Operation* op1 = parser1.ParseLine();
 	
-	op = parser.parse("ls -a && exit || echo aaa");
-	op->print(s);
-	EXPECT_EQ(s.str(), "ls -a && exit || echo aaa");
+	//op = parser.Parse("ls -a && exit || echo aaa");
+	op1->print(s);
+	EXPECT_EQ(s.str(), "(ls -a) && exit || (echo aaa)");
 	s.str("");
 	
-	op = parser.parse("ls      -a        &&     exit     || aaa");
-	op->print(s);
-	EXPECT_EQ(s.str(), "ls -a && exit || aaa");
+	string line2 = "ls      -a        &&     exit     || aaa";
+	//op = parser.Parse("ls      -a        &&     exit     || aaa");
+	Reader parser2(p, line2);
+
+	Operation* op2 = parser2.ParseLine();
+	op2->print(s);
+	EXPECT_EQ(s.str(), "(ls -a) && exit || (aaa)");
 	s.str("");
 	
 	delete p;
-	delete op;
+	delete op1;
+	delete op2;
 }
 TEST(ChainTest, SuccessEchoTest) {
 	vector<Operation*> operations;
@@ -143,32 +149,41 @@ TEST(ChainTest, FailEchoTest) {
 
 	delete op;
 }
+
 TEST(ChainTest, SourceTest) {
 	Program* p = new Program();
-	Reader parser(p);
+	string line1 = "ls -a      &&     ls";
+	Reader parser1(p, line1);
 	
 	ostringstream s;	
 	Operation* op;
 	
-	op = parser.parse("ls -a      &&     ls");
+	//op = parser.Parse("ls -a      &&     ls");
+	op = parser1.ParseLine();
 	op->print(s);
-	EXPECT_EQ(s.str(), "ls -a && ls");
+	EXPECT_EQ(s.str(), "(ls -a) && (ls)");
 	s.str("");
 	
-	op = parser.parse("            ls -a             ");
+	string line2 = "            ls -a             ";
+	Reader parser2(p, line2);
+	//op = parser.Parse("            ls -a             ");
+	op = parser2.ParseLine();
 	op->print(s);
-	EXPECT_EQ(s.str(), "ls -a");
+	EXPECT_EQ(s.str(), "(ls -a)");
 	s.str("");
 	
-	op = parser.parse("                    ls             -a");
+	string line3 = "                    ls             -a";
+	Reader parser3(p, line3);
+	//op = parser.Parse("                    ls             -a");
+	op = parser3.ParseLine();
 	op->print(s);
-	EXPECT_EQ(s.str(), "ls -a");
+	EXPECT_EQ(s.str(), "(ls -a)");
 	s.str("");
 	
 	delete p;
 	delete op;
 }
-*/
+
 TEST(PrecendenceTest, EchoTest) {
 	//TO DO: Implement these
 	//(echo a && (echo b || (echo c || (echo d)))) -> a\nb\n
