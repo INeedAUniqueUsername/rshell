@@ -67,10 +67,10 @@ TEST(CommandTest, SourceTest) {
 	Reader parser1(p, line1);
 	
 	ostringstream s;	
-	Operation* op1 = parser1.ParseLine();
+	Operation* op = parser1.ParseLine();
 	
 	//op = parser.Parse("ls -a && exit || echo aaa");
-	op1->print(s);
+	op->print(s);
 	EXPECT_EQ(s.str(), "(ls -a) && exit || (echo aaa)");
 	s.str("");
 	
@@ -78,14 +78,13 @@ TEST(CommandTest, SourceTest) {
 	//op = parser.Parse("ls      -a        &&     exit     || aaa");
 	Reader parser2(p, line2);
 
-	Operation* op2 = parser2.ParseLine();
-	op2->print(s);
+	op = parser2.ParseLine();
+	op->print(s);
 	EXPECT_EQ(s.str(), "(ls -a) && exit || (aaa)");
 	s.str("");
 	
 	delete p;
-	delete op1;
-	delete op2;
+	delete op;
 }
 TEST(ChainTest, SuccessEchoTest) {
 	vector<Operation*> operations;
