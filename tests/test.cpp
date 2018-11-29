@@ -235,6 +235,32 @@ TEST(TestCommandTest, PrintTest) {
 	EXPECT_EQ("[ -e /src/operation.h ]", output);
 	delete op;
 }
+TEST(TestCommandTest, TrueExecuteTest) {
+	
+	string flag = "-e";
+	string arg = ".";
+	TestCommand* op = new TestCommand(flag, arg);
+	//Print the source
+	testing::internal::CaptureStdout();
+	op->execute();
+	string output = testing::internal::GetCapturedStdout();
+	
+	EXPECT_EQ("(True)\n", output);
+	delete op;
+}
+TEST(TestCommandTest, FalseExecuteTest) {
+	
+	string flag = "-e";
+	string arg = "zzz";
+	TestCommand* op = new TestCommand(flag, arg);
+	//Print the source
+	testing::internal::CaptureStdout();
+	op->execute();
+	string output = testing::internal::GetCapturedStdout();
+	
+	EXPECT_EQ("(False)\n", output);
+	delete op;
+}
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
