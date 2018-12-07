@@ -9,3 +9,11 @@ echo a > a.txt > b.txt
 # cat a.txt == ""
 # cat b.txt == "a"
 ```
+
+```
+(echo "a" && echo "b" && echo "a") | (sort | sort) | sort
+# Result:
+# a
+# a
+# b
+```
