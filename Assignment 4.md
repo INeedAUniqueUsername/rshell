@@ -20,3 +20,10 @@ echo a > a.txt > b.txt
 # a
 # b
 ```
+
+```
+# This means the input and output applies to the last operation
+echo a > a.txt && echo c && echo b
+# Result
+# a
+```
