@@ -110,6 +110,101 @@ class Chain : public Operation {
 			operations.at(operations.size() - 1)->print(out);
 		}
 };
+
+class InputOperation : public Operation {
+	private:
+		Operation* source;
+		string file;
+	public:
+		InputOperation(Operation* source, string file) : source(source), file(file) {}
+		~InputOperation() {
+			delete source;
+		}
+		bool execute() {
+			//TO DO: Setup the input
+			
+			//Execute the operation itself
+			bool result = source->execute();
+			
+			//TO DO: Finish the input
+			
+			
+			return result;
+		}
+		void print(ostream& out) {
+			source.print(out) << " > " << file;
+		}
+}
+
+class OutputOperation : public Operation {
+	private:
+		Operation* source;
+		string file;
+	public:
+		OutputOperation(Operation* source, string file) : source(source), file(file) {}
+		~OutputOperation() {
+			delete source;
+		}
+		bool execute() {
+			//TO DO: Setup the output (delete the file and create a new one)
+			
+			//Execute the operation itself
+			bool result = source->execute();
+			
+			//TO DO: Finish the output
+			
+			
+			return result;
+		}
+		void print(ostream& out) {
+			source.print(out) << " > " << file;
+		}
+}
+class AppendOperation : public Operation {
+	private:
+		Operation* source;
+		string file;
+	public:
+		AppendOperation(Operation* source, string file) : source(source), file(file) {}
+		~AppendOperation() {
+			delete source;
+		}
+		bool execute() {
+			//TO DO: Setup the output (create the file if it does not exist and append to it)
+			
+			//Execute the operation itself
+			bool result = source->execute();
+			
+			//TO DO: Finish the output
+			
+			
+			return result;
+		}
+		void print(ostream& out) {
+			source.print(out) << " > " << file;
+		}
+}
+class PipeOperation : public Operation {
+	private:
+		Operation *giver, *receiver;
+		
+	public:
+		PipeOperation(Operation *giver, Operation *receiver) : giver(giver), receiver(receiver) {}
+		~PipeOperation() {
+			delete giver;
+			delete receiver;
+		}
+		bool execute() {
+			//TO DO: Prepare the pipe
+			
+			giver->execute();
+			bool result = receiver->execute();
+			
+			//TO DO: Stop the pipe
+			
+			return result;
+		}
+}
 class Command : public Operation {
 	private:
 		bool executeCommand() {
