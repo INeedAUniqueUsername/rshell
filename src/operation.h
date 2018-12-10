@@ -54,6 +54,14 @@ class Operation {
 		virtual void print(ostream& out) = 0;
 	protected:
 		void handlePipes(int pipeIn[] = 0, int pipeOut[] = 0) {
+			/*
+			if(pipeIn)
+				cout << "pipeIn" << endl;
+			if(pipeOut)
+				cout << "pipeOut" << endl;
+				*/
+			
+			
 			if(pipeIn != 0 && pipeOut != 0) {
 				//This should not happen
 				if(pipeIn == pipeOut) {
@@ -80,11 +88,13 @@ class Operation {
 				dup2(pipeIn[0], 0);
 				close(pipeIn[0]);
 				close(pipeIn[1]);
+				
 			} else if(pipeOut != 0) {
 				//output to pipeOut
 				dup2(pipeOut[1], 1);
 				close(pipeOut[0]);
 				close(pipeOut[1]);
+				
 			} else {
 				
 			}
@@ -252,8 +262,17 @@ class PipeOperation : public Operation {
 				exit(-1);
 				return false;
 			}
+			
 			writer->execute(pipeIn, pipeMid);
+			
+			char n = 0x4;
+			write(pipeMid[1], &n, 1);
+			
+			//Somehow this does not terminate
 			reader->execute(pipeMid, pipeOut);
+			
+			close(pipeMid[0]);
+			close(pipeMid[1]);
 		}
 		void print(ostream& out) {
 			writer->print(out);
@@ -360,7 +379,6 @@ class TestCommand : public Operation {
 			} else if (pid == 0) {
 				
 				handlePipes(pipeIn, pipeOut);
-				
 				if(executeCommand()) {
 					_exit(0);
 					return true;
