@@ -132,12 +132,10 @@ class InputOperation : public Operation {
 			return result;
 		}
 		void print(ostream& out) {
-			//source.print(out) << " > " << file;
 			source->print(out);
-			out << " > " << file;
+			out << " < " << file;
 		}
 };
-
 class OutputOperation : public Operation {
 	private:
 		Operation* source;
@@ -159,7 +157,6 @@ class OutputOperation : public Operation {
 			return result;
 		}
 		void print(ostream& out) {
-			//source.print(out) << " > " << file;
 			source->print(out);
 			out << " > " << file;
 		}
@@ -185,9 +182,8 @@ class AppendOperation : public Operation {
 			return result;
 		}
 		void print(ostream& out) {
-			//source.print(out) << " > " << file;
 			source->print(out);
-			out << " > " << file;
+			out << " >> " << file;
 		}
 };
 class PipeOperation : public Operation {
@@ -201,8 +197,6 @@ class PipeOperation : public Operation {
 			delete receiver;
 		}
 		bool execute() {
-			//TO DO: Prepare the pipe
-			
 			/*
 			0 = stdin
 			1 = stdout

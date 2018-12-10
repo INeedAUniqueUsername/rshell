@@ -2,6 +2,7 @@
 #include<vector>
 #include<cctype>
 #include<stdexcept>
+#include<sstream>
 using namespace std;
 
 #ifndef __READER_H__
@@ -26,6 +27,11 @@ enum TokenTypes {
 	ConnectorAnd,
 	ConnectorOr,
 	ConnectorSemicolon,
+	
+	Input,
+	Pipe,
+	OutputAppend,
+	Output,
 	
 	//Arguments
 	CharBackslash,
@@ -60,6 +66,50 @@ class Reader {
 		bool IsArgChar(char c) {
 			return isalpha(c) || c == '-' || c == '.' || c == '/';
 		}
+		void UnexpectedToken(Token t) {
+			ostringstream s;
+			s << "ERROR: Unexpected ";
+			s << TokenName(t);
+			throw invalid_argument(t.value);
+		}
+		string TokenName(Token t) {
+			switch(t.type) {
+				case TokenTypes::OpenBracket:
+					return "open bracket";
+				case TokenTypes::CloseBracket:	
+					return "close bracket";
+				case TokenTypes::OpenParen:	
+					return "open parenthesis";
+				case TokenTypes::CloseParen:	
+					return "close parenthesis";
+				case TokenTypes::ConnectorAnd:	
+					return "connector &&";
+				case TokenTypes::ConnectorOr:	
+					return "connector ||";
+				case TokenTypes::ConnectorSemicolon:	
+					return "connector ;";
+				case TokenTypes::Input:
+					return "input descriptor";
+				case TokenTypes::Pipe:	
+					return "pipe";
+				case TokenTypes::Output:
+					return "output descriptor";
+				case TokenTypes::Output:
+					return "output descriptor";
+				case TokenTypes::CharBackslash:	
+					return "backslash";
+				case TokenTypes::CharQuote:	
+					return "quote";
+				case TokenTypes::CharSpace:	
+					return "space";
+				case TokenTypes::StringArg:	
+					return "string";
+				case TokenTypes::End:	
+					return "end of line";
+				default:
+					return t.value;
+			}
+		}
 		//Read the token at the current position
 		Token Read() {
 			if(index >= line.size()) {
@@ -78,6 +128,14 @@ class Reader {
 				return Token("||", TokenTypes::ConnectorOr);
 			} else if(LineContainsHere(";")) {
 				return Token(";", TokenTypes::ConnectorSemicolon);
+			} else if(LineStartsHere("<")) {
+				return Token("<", TokenTypes::Input);
+			} else if(LineContainsHere("|")) {
+				return Token("|", TokenTypes::Pipe);
+			} else if(LineContainsHere(">>")) {
+				return Token(">>", TokenTypes::OutputAppend);
+			} else if(LineContainsHere(">"))  {
+				return Token(">", TokenTypes::Output);
 			} else if(LineContainsHere("\\")) {
 				return Token("\\", TokenTypes::CharBackslash);
 			} else if(LineContainsHere("\"")) {

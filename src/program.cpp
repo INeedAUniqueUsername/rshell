@@ -12,6 +12,7 @@ using namespace std;
 #define PRINT(x)
 
 class Exit;
+class Reader;
 
 #include "program.h"
 #include "reader.h"
@@ -57,27 +58,10 @@ Operation* Reader::Parse() {
 			//We have a test command
 			UpdateIndex(t);
 			return ParseTestBracket();
-		case TokenTypes::CloseBracket:
-			//Unexpected
-			UpdateIndex(t);
-			throw invalid_argument("ERROR: Unexpected closing bracket");
-			return 0;
 		case TokenTypes::OpenParen:
 			//We have a chain
 			UpdateIndex(t);
 			return ParseChain();
-		case TokenTypes::CloseParen:
-			//Unexpected
-			UpdateIndex(t);
-			throw invalid_argument("ERROR: Unexpected closing parenthesis");
-			return 0;
-		case TokenTypes::ConnectorAnd:
-		case TokenTypes::ConnectorOr:
-		case TokenTypes::ConnectorSemicolon:
-			//Unexpected (since we do not parse Chains)
-			UpdateIndex(t);
-			throw invalid_argument("ERROR: Unexpected connector");
-			return 0;
 		case TokenTypes::CharSpace:
 			//We don't care about spaces here
 			UpdateIndex(t);
@@ -91,13 +75,19 @@ Operation* Reader::Parse() {
 		case TokenTypes::End:
 			//If the line is empty, don't do anything
 			return 0;
-		
+		default:
+			//Unexpected
+			UpdateIndex(t);
+			UnexpectedToken(t);
+			return 0;
 	}
 	return 0;
 }
 Operation* Reader::ParseChain() {
 	vector<Operation*> operations;
 	vector<Connector*> connectors;
+	
+	bool pipe = false;	//Whether we must connect the next and previous operations via pipe
 	
 	Parse:
 	Token t = Read();
@@ -109,18 +99,14 @@ Operation* Reader::ParseChain() {
 			//Increment the index past the bracket since the function expects that
 			UpdateIndex(t);
 			operations.push_back(ParseTestBracket());
-			goto Parse;
-		case TokenTypes::CloseBracket:
-			//We didn't expect this
-			throw invalid_argument("ERROR: Unexpected closing bracket");
-			return 0;
+			goto ParsedOperation;
 			
 		case TokenTypes::OpenParen:
 			//We have a subchain
 			PRINT("ParseChain: Subchain");
 			UpdateIndex(t);
 			operations.push_back(ParseChain());
-			goto Parse;
+			goto ParsedOperation;
 		case TokenTypes::CloseParen:
 			PRINT("ParseChain: CloseParen");
 			//If we reach the closing parenthesis, then we are done
@@ -131,7 +117,7 @@ Operation* Reader::ParseChain() {
 		case TokenTypes::ConnectorOr:
 		case TokenTypes::ConnectorSemicolon:
 			PRINT("ParseChain: Connector");
-			if(connectors.size() >= operations.size()) {
+			if(connectors.size() >= operations.size() || pipe) {
 				//We shouldn't have more connectors than operations
 				throw invalid_argument("ERROR: Unexpected connector");
 				return 0;
@@ -140,13 +126,49 @@ Operation* Reader::ParseChain() {
 			}
 			goto Parse;
 			
+		case TokenTypes::Input:
+			UpdateIndex(t);
+			SkipSpaces();
+			string file = ParseArgument();
+			if(operations.empty()) {
+				UnexpectedToken(t);
+			}
+			Operation* result = new InputOperation(operations.back(), file);
+			operations.pop_back();
+			operations.push_back(result);
+			goto ParsedOperation;
+		case TokenTypes::Pipe:
+			pipe = true;
+			goto Parse;
+		case TokenTypes::OutputAppend:
+			UpdateIndex(t);
+			SkipSpaces();
+			string file = ParseArgument();
+			if(operations.empty()) {
+				UnexpectedToken(t);
+			}
+			Operation* result = new AppendOperation(operations.back(), file);
+			operations.pop_back();
+			operations.push_back(result);
+			goto ParsedOperation;
+		case TokenTypes::Output:
+			UpdateIndex(t);
+			SkipSpaces();
+			string file = ParseArgument();
+			if(operations.empty()) {
+				UnexpectedToken(t);
+			}
+			Operation* result = new OutputOperation(operations.back(), file);
+			operations.pop_back();
+			operations.push_back(result);
+			goto ParsedOperation;
 		case TokenTypes::CharBackslash:
 		case TokenTypes::CharQuote:
 		case TokenTypes::StringArg:
 			//We have the first argument of a command
 			PRINT("ParseChain: Argument");
 			operations.push_back(ParseCommand());
-			goto Parse;
+			goto ParsedOperation;
 		case TokenTypes::CharSpace:
 			//Ignore the space
 			PRINT("ParseChain: Space");
@@ -156,6 +178,12 @@ Operation* Reader::ParseChain() {
 		case TokenTypes::End:
 			//We didn't expect this
 			throw invalid_argument("ERROR: Unexpected end of line in ParseChain");
+			return 0;
+			
+		default:
+			//Unexpected
+			UpdateIndex(t);
+			UnexpectedToken(t);
 			return 0;
 	}
 	
@@ -174,6 +202,18 @@ Operation* Reader::ParseChain() {
 	} else {
 		return new Chain(operations, connectors);
 	}
+	
+	ParsedOperation:
+	//Check if we have parsed the receiver of a pipe
+	if(pipe) {
+		Operation* receiver = operations.back();
+		operations.pop_back();
+		Operation* giver = operations.back();
+		operations.pop_back();
+		operations.push(new PipeChain());
+	}
+	goto Parse;
+	
 }
 Connector* Reader::ParseConnector() {
 	Token t = Read();
@@ -261,6 +301,7 @@ string Reader::ParseArgument() {
 		case TokenTypes::ConnectorSemicolon:
 		case TokenTypes::ConnectorAnd:
 		case TokenTypes::ConnectorOr:
+		case TokenTypes::Pipe:
 		case TokenTypes::End:
 		case TokenTypes::CharSpace:
 			//Delimited by end of line, space, or connector
@@ -312,20 +353,6 @@ Operation* Reader::ParseTestBracket() {
 			UpdateIndex(t);
 			goto Done;
 		
-		//We do not expect these
-		case TokenTypes::OpenBracket:
-		
-		case TokenTypes::OpenParen:
-		case TokenTypes::CloseParen:
-
-		case TokenTypes::ConnectorAnd:
-		case TokenTypes::ConnectorOr:
-		case TokenTypes::ConnectorSemicolon:
-		
-		case TokenTypes::End:
-			throw invalid_argument("ERROR: unexpected token in test expression");
-		
-		
 		case TokenTypes::CharBackslash:
 		case TokenTypes::CharQuote:
 		case TokenTypes::StringArg:
@@ -335,6 +362,10 @@ Operation* Reader::ParseTestBracket() {
 		case TokenTypes::CharSpace:
 			UpdateIndex(t);
 			goto Read;
+			
+		default:
+			UnexpectedToken(t);
+			return 0;
 	}
 	
 	Done:
@@ -348,4 +379,12 @@ Operation* Reader::ParseTestBracket() {
 		throw invalid_argument("ERROR: too many arguments in test expression");
 	}
 	return 0;
+}
+
+void Reader::SkipSpaces() {
+	Token t = Read();
+	while(t.type == TokenTypes::CharSpace) {
+		UpdateIndex(t);
+		t = Read();
+	}
 }
