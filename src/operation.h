@@ -50,8 +50,45 @@ class Any : public Connector {
 };
 class Operation {
 	public:
-		virtual bool execute() = 0;
+		virtual bool execute(int pipeIn[] = 0, int pipeOut[] = 0) = 0;
 		virtual void print(ostream& out) = 0;
+	protected:
+		void handlePipes(int pipeIn[] = 0, int pipeOut[] = 0) {
+			if(pipeIn != 0 && pipeOut != 0) {
+				//This should not happen
+				if(pipeIn == pipeOut) {
+					//input from pipeIn
+					dup2(pipeIn[0], 0);
+					//output to pipeOut
+					dup2(pipeOut[1], 1);
+					//close the pipe
+					close(pipeIn[0]);
+					close(pipeOut[1]);
+				} else {
+					//input from pipeIn
+					dup2(pipeIn[0], 0);
+					close(pipeIn[0]);
+					close(pipeIn[1]);
+					
+					//output to pipeOut
+					dup2(pipeOut[1], 1);
+					close(pipeOut[0]);
+					close(pipeOut[1]);
+				}
+			} else if(pipeIn != 0) {
+				//input from pipeIn
+				dup2(pipeIn[0], 0);
+				close(pipeIn[0]);
+				close(pipeIn[1]);
+			} else if(pipeOut != 0) {
+				//output to pipeOut
+				dup2(pipeOut[1], 1);
+				close(pipeOut[0]);
+				close(pipeOut[1]);
+			} else {
+				
+			}
+		}
 };
 /*
 class Pair : public Operation {
@@ -87,14 +124,14 @@ class Chain : public Operation {
 			operations.clear();
 			connectors.clear();	
 		}
-		bool execute() {
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//First operation always executes
-			bool result = operations.at(0)->execute();
+			bool result = operations.at(0)->execute(pipeIn, pipeOut);
 			
 			for(unsigned i = 1; i < operations.size(); i++) {
 				//We execute this command if the previous result satisfies the connector
 				if(connectors.at(i - 1)->status(result)) {
-					result = operations.at(i)->execute();
+					result = operations.at(i)->execute(pipeIn, pipeOut);
 				}
 			}
 			return result;
@@ -120,7 +157,7 @@ class InputOperation : public Operation {
 		~InputOperation() {
 			delete source;
 		}
-		bool execute() {
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the input
 			
 			//Execute the operation itself
@@ -145,7 +182,7 @@ class OutputOperation : public Operation {
 		~OutputOperation() {
 			delete source;
 		}
-		bool execute() {
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the output (delete the file and create a new one)
 			
 			//Execute the operation itself
@@ -170,7 +207,7 @@ class AppendOperation : public Operation {
 		~AppendOperation() {
 			delete source;
 		}
-		bool execute() {
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the output (create the file if it does not exist and append to it)
 			
 			//Execute the operation itself
@@ -196,7 +233,7 @@ class PipeOperation : public Operation {
 			delete writer;
 			delete reader;
 		}
-		bool execute() {
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			/*
 			0 = stdin
 			1 = stdout
@@ -205,98 +242,18 @@ class PipeOperation : public Operation {
 			writer output -> reader input
 			*/
 
-			int fd[2];
+			int pipeMid[2];
 
 			//pipe(fd);
 			pid_t pid;
 
-			if (pipe(fd) == -1) {
+			if (pipe(pipeMid) == -1) {
 				perror("pipe error");
 				exit(-1);
 				return false;
 			}
-
-			pid = fork();
-
-			if (pid == -1) {
-				perror("fork() error");
-				exit(-1);
-				return false;
-			} else if (pid == 0) { //Child
-				if(close(STDIN_FILENO) == -1) {
-					perror("pre-operation stdin close error reader");
-					_exit(-1);
-				}
-				if(dup(fd[0]) == -1) {
-					perror("pre-operation pipe-in dup error in reader");
-					_exit(-1);
-				}
-				
-				if(close(fd[1]) == -1) {
-					perror("pre-operation pipe-out close error in reader");
-					_exit(-1);
-				}
-				int result = 0;
-				
-				char buf;
-				while(read(fd[0], &buf, 1) > 0) {
-					write(STDOUT_FILENO, &buf, 1);
-				}
-				
-				/*
-				cout << "executing reader command" << endl;
-				if(reader->execute()) {
-					result = 0;
-				} else {
-					cout << "reader command failed" << endl;
-					result = -1;
-				}
-				*/
-				
-				if(close(fd[0]) == -1) {
-					perror("pre-operation pipe-in close error in reader");
-					_exit(-1);	
-				}
-				_exit(result);
-			} else { //Parent
-			
-				//Close stdout
-				if(close(STDOUT_FILENO) == -1) {
-					perror("pre-operation stdin close error in writer");
-					return false;
-				}
-				
-				//stdout <= pipe-out
-				if(dup(fd[1]) == -1) {
-					perror("pre-operation pipe-out dup error in writer");
-					return false;
-				}
-				
-				//close pipe-in
-				if(close(fd[0]) == -1) {
-					perror("pre-operation pipe-in close error in writer");
-				}
-				
-				//cout << "executing writer command" << endl;
-				if(writer->execute()) {
-					
-				} else {
-					//cout << "writer command failed" << endl;
-				}
-			
-				//close pipe-out
-				if(close(fd[1]) == -1) {
-					perror("pre-operation pipe-out close error in writer");
-				}
-			
-				int status;
-				waitpid(pid, &status, 0);
-				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-					return true;
-				} else {
-					return false;
-				}
-			}
+			writer->execute(pipeIn, pipeMid);
+			reader->execute(pipeMid, pipeOut);
 		}
 		void print(ostream& out) {
 			writer->print(out);
@@ -319,12 +276,15 @@ class Command : public Operation {
 	public:
 		Command(vector<string> arguments) : arguments(arguments) { }
 
-		bool execute() { //Executes the first argument in arguments as the program and the rest as paramaters
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) { //Executes the first argument in arguments as the program and the rest as paramaters
 			pid_t pid;
 	
 			if ((pid = fork()) < 0) {
 				perror("fork() error");
 			} else if (pid == 0) {
+				
+				handlePipes(pipeIn, pipeOut);
+				
 				if(executeCommand()) {
 					_exit(0);
 					return true;
@@ -359,7 +319,7 @@ class Exit : public Operation {
 		Program *parent;
 	public:
 		Exit(Program *parent) : parent(parent) {}
-		bool execute();
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0);
 		void print(ostream& out) {
 			out << "exit";
 		}
@@ -371,39 +331,53 @@ class TestCommand : public Operation {
 		TestCommand(const string& arg) : flag("-e"), arg(arg) {};
 		TestCommand(const string& flag, const string& arg) : flag(flag), arg(arg) {};
 
-		bool execute() { //Returns true if the file exists (stat() == 0)
+		bool executeCommand() { //Returns true if the file exists (stat() == 0)
 			struct stat buf;
+			bool result = false;
 			if (flag == "-e") {
-				if (stat(arg.c_str(), &buf) == 0) {
-					cout << "(True)" << endl;
-					return true;
-				}
-				else {
-					cout << "(False)" << endl;
-					return false;
-				}
-			}
-			else if (flag == "-f") {
+				result = (stat(arg.c_str(), &buf) == 0);
+			} else if (flag == "-f") {
 				stat(arg.c_str(), &buf);
-				if (buf.st_mode & S_IFREG) { //if a file
-					cout << "(True)" << endl;
-					return true;
-				} else {
-					cout << "(False)" << endl;
-					return false;
-				} 
-			}
-			else if (flag == "-d") {
+				result = (buf.st_mode & S_IFREG);
+			} else if (flag == "-d") {
 				stat(arg.c_str(), &buf);
-				if (buf.st_mode & S_IFDIR) {
-					cout << "(True)" << endl;
-					return true;
-				} else {
-					cout << "(False)" << endl;
-					return false;
-				}
+				result = (buf.st_mode & S_IFDIR);
 			}
 			
+			if(result) {
+				cout << "(True)" << endl;
+			} else {
+				cout << "(False)" << endl;
+			}
+			return result;
+		}
+
+		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) { //Executes the first argument in arguments as the program and the rest as paramaters
+			pid_t pid;
+	
+			if ((pid = fork()) < 0) {
+				perror("fork() error");
+			} else if (pid == 0) {
+				
+				handlePipes(pipeIn, pipeOut);
+				
+				if(executeCommand()) {
+					_exit(0);
+					return true;
+				} else {
+					perror("execvp error");
+					_exit(-1);
+					return false;
+				}
+			} else if(pid > 0) {
+				int status;
+				waitpid(pid, &status, 0);
+				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			}
 		}
 
 		void print(ostream& out) {
