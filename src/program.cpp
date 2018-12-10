@@ -210,11 +210,11 @@ Operation* Reader::ParseChain() {
 	ParsedOperation:
 	//Check if we have parsed the receiver of a pipe
 	if(pipe) {
-		Operation* receiver = operations.back();
+		Operation* reader = operations.back();
 		operations.pop_back();
-		Operation* giver = operations.back();
+		Operation* writer = operations.back();
 		operations.pop_back();
-		operations.push_back(new PipeOperation(giver, receiver));
+		operations.push_back(new PipeOperation(writer, reader));
 		pipe = false;
 	}
 	goto Parse;

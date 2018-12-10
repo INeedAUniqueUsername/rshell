@@ -188,13 +188,13 @@ class AppendOperation : public Operation {
 };
 class PipeOperation : public Operation {
 	private:
-		Operation *giver, *receiver;
+		Operation *writer, *reader;
 		
 	public:
-		PipeOperation(Operation *giver, Operation *receiver) : giver(giver), receiver(receiver) {}
+		PipeOperation(Operation *writer, Operation *reader) : writer(writer), reader(reader) {}
 		~PipeOperation() {
-			delete giver;
-			delete receiver;
+			delete writer;
+			delete reader;
 		}
 		bool execute() {
 			/*
@@ -202,7 +202,7 @@ class PipeOperation : public Operation {
 			1 = stdout
 			2 = stderr
 
-			giver output -> receiver input
+			writer output -> reader input
 			*/
 
 			int fd[2];
@@ -222,36 +222,86 @@ class PipeOperation : public Operation {
 				perror("fork() error");
 				exit(-1);
 				return false;
-			} else if (pid == 0) { //Child	
-				close(fd[1]);
-				dup2(fd[0], STDIN_FILENO);				
-				if(receiver->execute()) {
-					close(fd[0]);
-					_exit(0);
-				} else {
-					perror("execute error");
-					close(fd[0]);
+			} else if (pid == 0) { //Child
+				if(close(STDIN_FILENO) == -1) {
+					perror("pre-operation stdin close error reader");
 					_exit(-1);
-				}				
+				}
+				if(dup(fd[0]) == -1) {
+					perror("pre-operation pipe-in dup error in reader");
+					_exit(-1);
+				}
+				
+				if(close(fd[1]) == -1) {
+					perror("pre-operation pipe-out close error in reader");
+					_exit(-1);
+				}
+				int result = 0;
+				
+				char buf;
+				while(read(fd[0], &buf, 1) > 0) {
+					write(STDOUT_FILENO, &buf, 1);
+				}
+				
+				/*
+				cout << "executing reader command" << endl;
+				if(reader->execute()) {
+					result = 0;
+				} else {
+					cout << "reader command failed" << endl;
+					result = -1;
+				}
+				*/
+				
+				if(close(fd[0]) == -1) {
+					perror("pre-operation pipe-in close error in reader");
+					_exit(-1);	
+				}
+				_exit(result);
 			} else { //Parent
-				close(fd[0]);
-				dup2(fd[1], STDOUT_FILENO);	
-				giver->execute();
-				close(fd[1]);
+			
+				//Close stdout
+				if(close(STDOUT_FILENO) == -1) {
+					perror("pre-operation stdin close error in writer");
+					return false;
+				}
+				
+				//stdout <= pipe-out
+				if(dup(fd[1]) == -1) {
+					perror("pre-operation pipe-out dup error in writer");
+					return false;
+				}
+				
+				//close pipe-in
+				if(close(fd[0]) == -1) {
+					perror("pre-operation pipe-in close error in writer");
+				}
+				
+				//cout << "executing writer command" << endl;
+				if(writer->execute()) {
 					
+				} else {
+					//cout << "writer command failed" << endl;
+				}
+			
+				//close pipe-out
+				if(close(fd[1]) == -1) {
+					perror("pre-operation pipe-out close error in writer");
+				}
+			
 				int status;
 				waitpid(pid, &status, 0);
-				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {					
+				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
 					return true;
 				} else {
 					return false;
-				}			
+				}
 			}
 		}
 		void print(ostream& out) {
-			giver->print(out);
+			writer->print(out);
 			out << " | ";
-			receiver->print(out);
+			reader->print(out);
 		}
 };
 class Command : public Operation {
