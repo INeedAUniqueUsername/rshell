@@ -13,7 +13,6 @@ using namespace std;
 
 class Exit;
 class Reader;
-
 #include "program.h"
 #include "reader.h"
 #include "operation.h"
@@ -90,6 +89,7 @@ Operation* Reader::ParseChain() {
 	bool pipe = false;	//Whether we must connect the next and previous operations via pipe
 	
 	Parse:
+		
 	Token t = Read();
 	PRINT("ParseChain: Index = " << index);
 	switch(t.type) {
@@ -126,7 +126,7 @@ Operation* Reader::ParseChain() {
 			}
 			goto Parse;
 			
-		case TokenTypes::Input:
+		case TokenTypes::Input: {
 			UpdateIndex(t);
 			SkipSpaces();
 			string file = ParseArgument();
@@ -137,10 +137,12 @@ Operation* Reader::ParseChain() {
 			operations.pop_back();
 			operations.push_back(result);
 			goto ParsedOperation;
+		}
 		case TokenTypes::Pipe:
 			pipe = true;
+			UpdateIndex(t);
 			goto Parse;
-		case TokenTypes::OutputAppend:
+		case TokenTypes::OutputAppend: {
 			UpdateIndex(t);
 			SkipSpaces();
 			string file = ParseArgument();
@@ -151,7 +153,8 @@ Operation* Reader::ParseChain() {
 			operations.pop_back();
 			operations.push_back(result);
 			goto ParsedOperation;
-		case TokenTypes::Output:
+		}
+		case TokenTypes::Output: {
 			UpdateIndex(t);
 			SkipSpaces();
 			string file = ParseArgument();
@@ -162,6 +165,7 @@ Operation* Reader::ParseChain() {
 			operations.pop_back();
 			operations.push_back(result);
 			goto ParsedOperation;
+		}
 		case TokenTypes::CharBackslash:
 		case TokenTypes::CharQuote:
 		case TokenTypes::StringArg:
@@ -210,7 +214,8 @@ Operation* Reader::ParseChain() {
 		operations.pop_back();
 		Operation* giver = operations.back();
 		operations.pop_back();
-		operations.push(new PipeChain());
+		operations.push_back(new PipeOperation(giver, receiver));
+		pipe = false;
 	}
 	goto Parse;
 	

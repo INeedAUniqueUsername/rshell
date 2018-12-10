@@ -53,7 +53,7 @@ class Reader {
 		unsigned index = 0;
 		string line;
 		
-		
+		void SkipSpaces();
 		//Check the line at our current index to see if we have a certain substring
 		bool LineContainsHere(const string& sub) {
 			return line.substr(index, sub.length()) == sub;
@@ -92,7 +92,7 @@ class Reader {
 					return "input descriptor";
 				case TokenTypes::Pipe:	
 					return "pipe";
-				case TokenTypes::Output:
+				case TokenTypes::OutputAppend:
 					return "output descriptor";
 				case TokenTypes::Output:
 					return "output descriptor";
@@ -128,7 +128,7 @@ class Reader {
 				return Token("||", TokenTypes::ConnectorOr);
 			} else if(LineContainsHere(";")) {
 				return Token(";", TokenTypes::ConnectorSemicolon);
-			} else if(LineStartsHere("<")) {
+			} else if(LineContainsHere("<")) {
 				return Token("<", TokenTypes::Input);
 			} else if(LineContainsHere("|")) {
 				return Token("|", TokenTypes::Pipe);
