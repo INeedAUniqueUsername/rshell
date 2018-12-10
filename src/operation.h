@@ -132,9 +132,11 @@ class InputOperation : public Operation {
 			return result;
 		}
 		void print(ostream& out) {
-			source.print(out) << " > " << file;
+			//source.print(out) << " > " << file;
+			source->print(out);
+			out << " > " << file;
 		}
-}
+};
 
 class OutputOperation : public Operation {
 	private:
@@ -157,9 +159,11 @@ class OutputOperation : public Operation {
 			return result;
 		}
 		void print(ostream& out) {
-			source.print(out) << " > " << file;
+			//source.print(out) << " > " << file;
+			source->print(out);
+			out << " > " << file;
 		}
-}
+};
 class AppendOperation : public Operation {
 	private:
 		Operation* source;
@@ -181,9 +185,11 @@ class AppendOperation : public Operation {
 			return result;
 		}
 		void print(ostream& out) {
-			source.print(out) << " > " << file;
+			//source.print(out) << " > " << file;
+			source->print(out);
+			out << " > " << file;
 		}
-}
+};
 class PipeOperation : public Operation {
 	private:
 		Operation *giver, *receiver;
@@ -197,14 +203,63 @@ class PipeOperation : public Operation {
 		bool execute() {
 			//TO DO: Prepare the pipe
 			
-			giver->execute();
-			bool result = receiver->execute();
-			
-			//TO DO: Stop the pipe
-			
-			return result;
+			/*
+			0 = stdin
+			1 = stdout
+			2 = stderr
+
+			giver output -> receiver input
+			*/
+
+			int fd[2];
+
+			//pipe(fd);
+			pid_t pid;
+
+			if (pipe(fd) == -1) {
+				perror("pipe error");
+				exit(-1);
+				return false;
+			}
+
+			pid = fork();
+
+			if (pid == -1) {
+				perror("fork() error");
+				exit(-1);
+				return false;
+			} else if (pid == 0) { //Child	
+				close(fd[1]);
+				dup2(fd[0], STDIN_FILENO);				
+				if(receiver->execute()) {
+					close(fd[0]);
+					_exit(0);
+				} else {
+					perror("execute error");
+					close(fd[0]);
+					_exit(-1);
+				}				
+			} else { //Parent
+				close(fd[0]);
+				dup2(fd[1], STDOUT_FILENO);	
+				giver->execute();
+				close(fd[1]);
+					
+				int status;
+				waitpid(pid, &status, 0);
+				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {					
+					return true;
+				} else {
+					return false;
+				}			
+			}
 		}
-}
+		void print(ostream& out) {
+			giver->print(out);
+			out << " | ";
+			receiver->print(out);
+		}
+};
 class Command : public Operation {
 	private:
 		bool executeCommand() {

@@ -261,6 +261,30 @@ TEST(TestCommandTest, FalseExecuteTest) {
 	EXPECT_EQ("(False)\n", output);
 	delete op;
 }
+TEST(PipeTest, lsTest) {
+	vector<string> t1;
+	t1.push_back("ls");
+	t1.push_back("-l");
+
+	Command* test1 = new Command(t1);
+
+	vector<string> t2;
+	t2.push_back("wc");
+	t2.push_back("-m");
+
+	Command* test2 = new Command(t2);
+
+	PipeOperation* op = new PipeOperation(test1, test2);
+
+	testing::internal::CaptureStdout();
+	op->execute();
+	string output = testing::internal::GetCapturedStdout();
+
+	EXPECT_EQ("18\n", output);
+	delete test1;
+	delete test2;
+	delete op;
+}
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
