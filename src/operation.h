@@ -53,6 +53,12 @@ class Operation {
 		virtual bool execute(int pipeIn[] = 0, int pipeOut[] = 0) = 0;
 		virtual void print(ostream& out) = 0;
 	protected:
+		void closeIn(int pipeIn[] = 0) {
+			if(pipeIn) {
+				close(pipeIn[0]);
+				close(pipeIn[1]);
+			}
+		}
 		void handlePipes(int pipeIn[] = 0, int pipeOut[] = 0) {
 			/*
 			if(pipeIn)
@@ -265,9 +271,6 @@ class PipeOperation : public Operation {
 			
 			writer->execute(pipeIn, pipeMid);
 			
-			char n = 0x4;
-			write(pipeMid[1], &n, 1);
-			
 			//Somehow this does not terminate
 			reader->execute(pipeMid, pipeOut);
 			
@@ -313,6 +316,8 @@ class Command : public Operation {
 					return false;
 				}
 			} else if(pid > 0) {
+				closeIn(pipeIn);
+				
 				int status;
 				waitpid(pid, &status, 0);
 				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
@@ -388,6 +393,8 @@ class TestCommand : public Operation {
 					return false;
 				}
 			} else if(pid > 0) {
+				closeIn(pipeIn);
+				
 				int status;
 				waitpid(pid, &status, 0);
 				if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
