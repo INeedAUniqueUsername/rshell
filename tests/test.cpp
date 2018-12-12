@@ -307,7 +307,7 @@ TEST(InputTest, InputFileTest) {
 TEST(OutputTest, OutputTruncateTest) {
 	vector<string> t1;
 	t1.push_back("echo");
-	t1.push_back("test");	
+	t1.push_back("te st t e s t");	
 	string fileName = "./tests/testOutput1.txt";
 
 	Command* op = new Command(t1);
@@ -320,12 +320,12 @@ TEST(OutputTest, OutputTruncateTest) {
 	string inputText;
 	ifstream in(fileName);
 	if (in.is_open()) {
-		while (in >> c) {
+		while (in.get(c)) {
 			inputText += c;
 		}
 	}
 
-	EXPECT_EQ("test", inputText);
+	EXPECT_EQ("te st t e s t\n", inputText);
 	delete op;
 
 }
