@@ -176,7 +176,6 @@ class InputOperation : public Operation {
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the input
-			char inputChar;
 			ifstream in;
 			in.open(file);
 
@@ -194,7 +193,7 @@ class InputOperation : public Operation {
 			if (in.is_open()) {
 				char c;
 				while(in >> c) {					 
-					write(pipeFile[1], &c, sizeof(inputChar));
+					write(pipeFile[1], &c, sizeof(c));
 				}
 				//Done sending to input, so close
 				close(pipeFile[1]);
@@ -251,9 +250,9 @@ class OutputOperation : public Operation {
 			if(out.is_open()) {
 					close(pipeFile[1]);
 					source->execute(pipeIn, pipeFile);
-					while(read(pipeFile[0], &outputChar, sizeof(outputChar)) > 0) { //Seems like this is not true ever
-						//out << "test1";
-						out << outputChar;
+					while(read(pipeFile[0], &outputChar, sizeof(outputChar)) > 0) { //Seems like this is not true ever	
+						//cout << "test1";
+						out.put(outputChar);
 					}
 					out.close();
 					close(pipeFile[0]);
