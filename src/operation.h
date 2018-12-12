@@ -180,36 +180,36 @@ class InputOperation : public Operation {
 			ifstream in;
 			in.open(file);
 
-			int pipeInput[2];
+			int pipeFile[2];
 
-			if (pipe(pipeInput) == -1) {
+			if (pipe(pipeFile) == -1) {
 				perror("pipe error");
 				exit(-1);
 				in.close();
 				return false;
-			}		
+			}
 			
+			//Send everything to pipe-out
+			//Don't close pipe-in since the user will dup and close it for us
 			if (in.is_open()) {
-				close(pipeInput[0]);
-				inputChar = in.get();
-				while(in.good()) {
-					inputChar = in.get();
-					write(pipeInput[1], &inputChar, sizeof(inputChar));
+				char c;
+				while(in >> c) {
+					write(pipeFile[1], &c, sizeof(inputChar));
 				}
-				close(pipeInput[1]);
+				//Done sending to input, so close
+				close(pipeFile[1]);
+				in.close();
 			} else {
 				perror("unable to open file");
 				return false;
 			}
 
-			in.close();
-
 			//Execute the operation itself
-			bool result = source->execute(pipeInput, pipeOut);
+			bool result = source->execute(pipeFile, pipeOut);
 			
-			//TO DO: Finish the input
-			close(pipeInput[0]);
-			close(pipeInput[1]);
+			//Done with the pipes
+			close(pipeFile[0]);
+			close(pipeFile[1]);
 			return result;
 		}
 		void print(ostream& out) {
