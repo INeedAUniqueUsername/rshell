@@ -149,7 +149,7 @@ Operation* Reader::ParseChain() {
 			if(operations.empty()) {
 				UnexpectedToken(t);
 			}
-			Operation* result = new AppendOperation(operations.back(), file);
+			Operation* result = new OutputOperation(true, operations.back(), file);
 			operations.pop_back();
 			operations.push_back(result);
 			goto ParsedOperation;
@@ -161,7 +161,7 @@ Operation* Reader::ParseChain() {
 			if(operations.empty()) {
 				UnexpectedToken(t);
 			}
-			Operation* result = new OutputOperation(operations.back(), file);
+			Operation* result = new OutputOperation(false, operations.back(), file);
 			operations.pop_back();
 			operations.push_back(result);
 			goto ParsedOperation;
