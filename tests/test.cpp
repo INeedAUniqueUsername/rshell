@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <fstream>
 
 using namespace std;
 
@@ -281,8 +282,8 @@ TEST(PipeTest, lsTest) {
 	string output = testing::internal::GetCapturedStdout();
 
 	EXPECT_EQ("18\n", output);
-	delete test1;
-	delete test2;
+	//delete test1;
+	//delete test2;
 	delete op;
 }
 TEST(InputTest, InputFileTest) {
@@ -299,9 +300,34 @@ TEST(InputTest, InputFileTest) {
 	input->execute();
 	string output = testing::internal::GetCapturedStdout();
 
-	EXPECT_EQ("5 ./tests/testInput.txt", output);
+	EXPECT_EQ("4\n", output);
 	delete op;
-	delete input;
+	//delete input;
+}
+TEST(OutputTest, OutputTruncateTest) {
+	vector<string> t1;
+	t1.push_back("echo");
+	t1.push_back("te st t e s t");	
+	string fileName = "./tests/testOutput1.txt";
+
+	Command* op = new Command(t1);
+
+	OutputOperation* output = new OutputOperation(false, op, fileName);
+
+	output->execute();
+
+	char c;
+	string inputText;
+	ifstream in(fileName);
+	if (in.is_open()) {
+		while (in.get(c)) {
+			inputText += c;
+		}
+	}
+
+	EXPECT_EQ("te st t e s t\n", inputText);
+	delete op;
+
 }
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

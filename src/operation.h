@@ -176,7 +176,6 @@ class InputOperation : public Operation {
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the input
-			char inputChar;
 			ifstream in;
 			in.open(file);
 
@@ -193,8 +192,8 @@ class InputOperation : public Operation {
 			//Don't close pipe-in since the user will dup and close it for us
 			if (in.is_open()) {
 				char c;
-				while(in >> c) {
-					write(pipeFile[1], &c, sizeof(inputChar));
+				while(in >> c) {					 
+					write(pipeFile[1], &c, sizeof(c));
 				}
 				//Done sending to input, so close
 				close(pipeFile[1]);
@@ -221,50 +220,60 @@ class OutputOperation : public Operation {
 	private:
 		Operation* source;
 		string file;
+		bool flag;
 	public:
-		OutputOperation(Operation* source, string file) : source(source), file(file) {}
+		OutputOperation(bool flag, Operation* source, string file) : flag(flag), source(source), file(file) {}
 		~OutputOperation() {
 			delete source;
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the output (delete the file and create a new one)			
-			
-			//Execute the operation itself
-			bool result = source->execute();
-			
-			//TO DO: Finish the output
-			
-			
-			return result;
+			char outputChar;
+
+			ofstream out;
+
+			int pipeFile[2];
+
+			if (pipe(pipeFile) == -1) {
+				perror("pipe error");
+				exit(-1);
+				out.close();
+				return false;
+			}
+
+			if (flag == true) { //Append
+				out.open(file, ofstream::out | ofstream::app);
+			} else if (flag == false) { //Truncate
+				out.open(file, ofstream::out | ofstream::trunc);
+			}
+
+			if(out.is_open()) {					
+					source->execute(pipeIn, pipeFile);
+					
+					close(pipeFile[1]);
+					while(read(pipeFile[0], &outputChar, sizeof(outputChar)) > 0) { //Seems like this is not true ever
+						out << outputChar;
+					}
+					out.close();
+					close(pipeFile[0]);
+					close(pipeFile[1]);
+					return true;
+				} else {
+					perror("unable to open file");
+					out.close();
+					close(pipeFile[0]);
+					close(pipeFile[1]);
+					return false;
+				}			
 		}
 		void print(ostream& out) {
 			source->print(out);
-			out << " > " << file;
-		}
-};
-class AppendOperation : public Operation {
-	private:
-		Operation* source;
-		string file;
-	public:
-		AppendOperation(Operation* source, string file) : source(source), file(file) {}
-		~AppendOperation() {
-			delete source;
-		}
-		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
-			//TO DO: Setup the output (create the file if it does not exist and append to it)
+			if (flag == true) {
+				out << " >> " << file;
+			} else if (flag == false) {
+				out << " > " << file;
+			}
 			
-			//Execute the operation itself
-			bool result = source->execute();
-			
-			//TO DO: Finish the output
-			
-			
-			return result;
-		}
-		void print(ostream& out) {
-			source->print(out);
-			out << " >> " << file;
 		}
 };
 class RedirectOperation : public Operation {
