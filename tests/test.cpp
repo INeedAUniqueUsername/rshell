@@ -281,8 +281,8 @@ TEST(PipeTest, lsTest) {
 	string output = testing::internal::GetCapturedStdout();
 
 	EXPECT_EQ("18\n", output);
-	delete test1;
-	delete test2;
+	//delete test1;
+	//delete test2;
 	delete op;
 }
 TEST(InputTest, InputFileTest) {
