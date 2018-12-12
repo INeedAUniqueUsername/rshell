@@ -301,7 +301,7 @@ TEST(InputTest, InputFileTest) {
 
 	EXPECT_EQ("4\n", output);
 	delete op;
-	delete input;
+	//delete input;
 }
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

@@ -221,8 +221,9 @@ class OutputOperation : public Operation {
 	private:
 		Operation* source;
 		string file;
+		bool flag;
 	public:
-		OutputOperation(Operation* source, string file) : source(source), file(file) {}
+		OutputOperation(Operation* source, string file, bool flag) : source(source), file(file), flag(flag) {}
 		~OutputOperation() {
 			delete source;
 		}
@@ -240,31 +241,6 @@ class OutputOperation : public Operation {
 		void print(ostream& out) {
 			source->print(out);
 			out << " > " << file;
-		}
-};
-class AppendOperation : public Operation {
-	private:
-		Operation* source;
-		string file;
-	public:
-		AppendOperation(Operation* source, string file) : source(source), file(file) {}
-		~AppendOperation() {
-			delete source;
-		}
-		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
-			//TO DO: Setup the output (create the file if it does not exist and append to it)
-			
-			//Execute the operation itself
-			bool result = source->execute();
-			
-			//TO DO: Finish the output
-			
-			
-			return result;
-		}
-		void print(ostream& out) {
-			source->print(out);
-			out << " >> " << file;
 		}
 };
 class PipeOperation : public Operation {
