@@ -270,7 +270,7 @@ TEST(PipeTest, lsTest) {
 
 	vector<string> t2;
 	t2.push_back("wc");
-	t2.push_back("-m");
+	t2.push_back("-l");
 
 	Command* test2 = new Command(t2);
 
@@ -284,6 +284,24 @@ TEST(PipeTest, lsTest) {
 	delete test1;
 	delete test2;
 	delete op;
+}
+TEST(InputTest, InputFileTest) {
+	vector<string> t1;
+	t1.push_back("wc");
+	t1.push_back("-m");
+	string fileName = "./tests/testInput.txt";
+
+	Command* op = new Command(t1);
+
+	InputOperation* input = new InputOperation(op, fileName);
+
+	testing::internal::CaptureStdout();
+	input->execute();
+	string output = testing::internal::GetCapturedStdout();
+
+	EXPECT_EQ("5 ./tests/testInput.txt", output);
+	delete op;
+	delete input;
 }
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

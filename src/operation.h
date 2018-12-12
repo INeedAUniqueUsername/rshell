@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <algorithm>
 #include <sys/stat.h>
+#include <fstream>
 using namespace std;
 
 #ifndef __OPERATION_H__
@@ -175,13 +176,40 @@ class InputOperation : public Operation {
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the input
+			char inputChar;
+			ifstream in;
+			in.open(file);
+
+			int pipeInput[2];
+
+			if (pipe(pipeInput) == -1) {
+				perror("pipe error");
+				exit(-1);
+				in.close();
+				return false;
+			}		
 			
+			if (in.is_open()) {
+				close(pipeInput[0]);
+				inputChar = in.get();
+				while(in.good()) {
+					inputChar = in.get();
+					write(pipeInput[1], &inputChar, sizeof(inputChar));
+				}
+				close(pipeInput[1]);
+			} else {
+				perror("unable to open file");
+				return false;
+			}
+
+			in.close();
+
 			//Execute the operation itself
-			bool result = source->execute();
+			bool result = source->execute(pipeInput, pipeOut);
 			
 			//TO DO: Finish the input
-			
-			
+			close(pipeInput[0]);
+			close(pipeInput[1]);
 			return result;
 		}
 		void print(ostream& out) {
@@ -199,7 +227,7 @@ class OutputOperation : public Operation {
 			delete source;
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
-			//TO DO: Setup the output (delete the file and create a new one)
+			//TO DO: Setup the output (delete the file and create a new one)			
 			
 			//Execute the operation itself
 			bool result = source->execute();
@@ -259,9 +287,6 @@ class PipeOperation : public Operation {
 			*/
 
 			int pipeMid[2];
-
-			//pipe(fd);
-			pid_t pid;
 
 			if (pipe(pipeMid) == -1) {
 				perror("pipe error");
