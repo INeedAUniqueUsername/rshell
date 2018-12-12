@@ -299,7 +299,7 @@ TEST(InputTest, InputFileTest) {
 	input->execute();
 	string output = testing::internal::GetCapturedStdout();
 
-	EXPECT_EQ("5 ./tests/testInput.txt", output);
+	EXPECT_EQ("4\n", output);
 	delete op;
 	delete input;
 }
