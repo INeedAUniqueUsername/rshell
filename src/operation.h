@@ -193,7 +193,7 @@ class InputOperation : public Operation {
 			//Don't close pipe-in since the user will dup and close it for us
 			if (in.is_open()) {
 				char c;
-				while(in >> c) {
+				while(in >> c) {					 
 					write(pipeFile[1], &c, sizeof(inputChar));
 				}
 				//Done sending to input, so close
@@ -229,18 +229,52 @@ class OutputOperation : public Operation {
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the output (delete the file and create a new one)			
-			
-			//Execute the operation itself
-			bool result = source->execute();
-			
-			//TO DO: Finish the output
-			
-			
-			return result;
+			char outputChar;
+
+			ofstream out;
+
+			int pipeFile[2];
+
+			if (pipe(pipeFile) == -1) {
+				perror("pipe error");
+				exit(-1);
+				out.close();
+				return false;
+			}
+
+			if (flag == true) { //Append
+				out.open(file, ofstream::out | ofstream::app);
+			} else if (flag == false) { //Truncate
+				out.open(file, ofstream::out | ofstream::trunc);
+			}
+
+			if(out.is_open()) {
+					close(pipeFile[1]);
+					source->execute(pipeIn, pipeFile);
+					while(read(pipeFile[0], &outputChar, sizeof(outputChar)) > 0) { //Seems like this is not true ever
+						//out << "test1";
+						out << outputChar;
+					}
+					out.close();
+					close(pipeFile[0]);
+					close(pipeFile[1]);
+					return true;
+				} else {
+					perror("unable to open file");
+					out.close();
+					close(pipeFile[0]);
+					close(pipeFile[1]);
+					return false;
+				}			
 		}
 		void print(ostream& out) {
 			source->print(out);
-			out << " > " << file;
+			if (flag == true) {
+				out << " >> " << file;
+			} else if (flag == false) {
+				out << " > " << file;
+			}
+			
 		}
 };
 class PipeOperation : public Operation {

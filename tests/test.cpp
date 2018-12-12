@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <fstream>
 
 using namespace std;
 
@@ -302,6 +303,31 @@ TEST(InputTest, InputFileTest) {
 	EXPECT_EQ("4\n", output);
 	delete op;
 	//delete input;
+}
+TEST(OutputTest, OutputFileTest) {
+	vector<string> t1;
+	t1.push_back("echo");
+	t1.push_back("test");
+	string fileName = "./tests/testOutput1.txt";
+
+	Command* op = new Command(t1);
+
+	OutputOperation* output = new OutputOperation(false, op, fileName);
+
+	output->execute();
+
+	char c;
+	string inputText;
+	ifstream in(fileName);
+	if (in.is_open()) {
+		while (in >> c) {
+			inputText += c;
+		}
+	}
+
+	EXPECT_EQ("test", inputText);
+	delete op;
+
 }
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
