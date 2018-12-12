@@ -223,7 +223,7 @@ class OutputOperation : public Operation {
 		string file;
 		bool flag;
 	public:
-		OutputOperation(Operation* source, string file, bool flag) : source(source), file(file), flag(flag) {}
+		OutputOperation(bool flag, Operation* source, string file) : flag(flag), source(source), file(file) {}
 		~OutputOperation() {
 			delete source;
 		}
