@@ -267,6 +267,9 @@ class AppendOperation : public Operation {
 			out << " >> " << file;
 		}
 };
+class RedirectOperation : public Operation {
+	
+}
 class PipeOperation : public Operation {
 	private:
 		Operation *writer, *reader;
@@ -294,13 +297,14 @@ class PipeOperation : public Operation {
 				return false;
 			}
 			
+			//We ignore the result of writer
 			writer->execute(pipeIn, pipeMid);
 			
-			//Somehow this does not terminate
-			reader->execute(pipeMid, pipeOut);
+			bool result = reader->execute(pipeMid, pipeOut);
 			
 			close(pipeMid[0]);
 			close(pipeMid[1]);
+			return result;
 		}
 		void print(ostream& out) {
 			writer->print(out);
