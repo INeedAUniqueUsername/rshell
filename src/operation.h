@@ -176,18 +176,14 @@ class InputOperation : public Operation {
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the input
-			ifstream in;
-			in.open(file);
-
 			int pipeFile[2];
 
 			if (pipe(pipeFile) == -1) {
 				perror("pipe error");
-				exit(-1);
-				in.close();
 				return false;
 			}
 			
+			ifstream in(file);
 			//Send everything to pipe-out
 			//Don't close pipe-in since the user will dup and close it for us
 			if (in.is_open()) {
@@ -228,43 +224,35 @@ class OutputOperation : public Operation {
 		}
 		bool execute(int pipeIn[] = 0, int pipeOut[] = 0) {
 			//TO DO: Setup the output (delete the file and create a new one)			
-			char outputChar;
-
-			ofstream out;
 
 			int pipeFile[2];
-
 			if (pipe(pipeFile) == -1) {
 				perror("pipe error");
-				exit(-1);
-				out.close();
 				return false;
 			}
 
-			if (flag == true) { //Append
+			ofstream out;
+			if (flag) { //Append
 				out.open(file, ofstream::out | ofstream::app);
-			} else if (flag == false) { //Truncate
+			} else { //Truncate
 				out.open(file, ofstream::out | ofstream::trunc);
 			}
-
-			if(out.is_open()) {					
-					source->execute(pipeIn, pipeFile);
-					
-					close(pipeFile[1]);
-					while(read(pipeFile[0], &outputChar, sizeof(outputChar)) > 0) { //Seems like this is not true ever
-						out << outputChar;
-					}
-					out.close();
-					close(pipeFile[0]);
-					close(pipeFile[1]);
-					return true;
-				} else {
-					perror("unable to open file");
-					out.close();
-					close(pipeFile[0]);
-					close(pipeFile[1]);
-					return false;
-				}			
+			bool result;
+			if(out.is_open()) {				
+				result = source->execute(pipeIn, pipeFile);
+				
+				close(pipeFile[1]);
+				char c;
+				while(read(pipeFile[0], &c, sizeof(c)) > 0) { //Seems like this is not true ever
+					out << c;
+				}
+				out.close();
+			} else {
+				perror("unable to open file");
+			}
+			close(pipeFile[0]);
+			close(pipeFile[1]);
+			return result;
 		}
 		void print(ostream& out) {
 			source->print(out);
@@ -276,9 +264,6 @@ class OutputOperation : public Operation {
 			
 		}
 };
-class RedirectOperation : public Operation {
-	
-}
 class PipeOperation : public Operation {
 	private:
 		Operation *writer, *reader;
