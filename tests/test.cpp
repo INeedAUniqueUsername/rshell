@@ -304,10 +304,10 @@ TEST(InputTest, InputFileTest) {
 	delete op;
 	//delete input;
 }
-TEST(OutputTest, OutputFileTest) {
+TEST(OutputTest, OutputTruncateTest) {
 	vector<string> t1;
 	t1.push_back("echo");
-	t1.push_back("test");
+	t1.push_back("test");	
 	string fileName = "./tests/testOutput1.txt";
 
 	Command* op = new Command(t1);

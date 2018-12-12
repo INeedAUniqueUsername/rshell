@@ -247,12 +247,12 @@ class OutputOperation : public Operation {
 				out.open(file, ofstream::out | ofstream::trunc);
 			}
 
-			if(out.is_open()) {
-					close(pipeFile[1]);
+			if(out.is_open()) {					
 					source->execute(pipeIn, pipeFile);
-					while(read(pipeFile[0], &outputChar, sizeof(outputChar)) > 0) { //Seems like this is not true ever	
-						//cout << "test1";
-						out.put(outputChar);
+					
+					close(pipeFile[1]);
+					while(read(pipeFile[0], &outputChar, sizeof(outputChar)) > 0) { //Seems like this is not true ever
+						out << outputChar;
 					}
 					out.close();
 					close(pipeFile[0]);
