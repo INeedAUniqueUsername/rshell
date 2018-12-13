@@ -63,8 +63,9 @@ class Reader {
 			index += t.value.size();
 		}
 		
+		//Includes alphanumerics and certain symbols
 		bool IsArgChar(char c) {
-			return isalpha(c) || isdigit(c) || c == '-' || c == '.' || c == '/';
+			return isalpha(c) || isdigit(c) || c == '-' || c == '.' || c == '/' || c == '*';
 		}
 		void UnexpectedToken(Token t) {
 			ostringstream s;
