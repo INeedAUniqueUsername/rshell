@@ -8,7 +8,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
-
+#include <cstdio>
 using namespace std;
 
 //TO DO: Make old tests compatible with current implementation
@@ -327,7 +327,16 @@ TEST(OutputTest, OutputTruncateTest) {
 
 	EXPECT_EQ("te st t e s t\n", inputText);
 	delete op;
-
+}
+TEST(IOTest, SpecExampleTest) {
+	remove("existingInputFile");
+	remove("existingOutputFile1");
+	remove("existingOutputFile2");
+	Reader("echo ABCDEF > existingInputFile").RunLine();
+	EXPECT_EQ(Reader("cat < existingInputFile").RunLine(), "ABCDEF");
+	Reader("cat < existingInputFile | tr A-Z a-z | tee newOutputFile1 | tr a-z A-Z > newOutputFile2").RunLine();
+	EXPECT_EQ(Reader("cat < newOutputFile1").RunLine(), "abcdef");
+	EXPECT_EQ(Reader("cat < newOutputFile2").RunLine(), "ABCDEF");
 }
 int main (int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

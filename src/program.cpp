@@ -43,6 +43,26 @@ void Program::run() {
 		}
 	}
 }
+string Reader::RunLine() {
+	Operation* o = ParseLine();
+	if(o) {
+		int pipeOut[2];
+		if (pipe(pipeOut) == -1) {
+			perror("pipe error");
+			return "";
+		}
+		o->execute(0, pipeOut);
+		delete o;
+		close(pipeOut[1]);
+		char c;
+		ostringstream out;
+		while(read(pipeOut[0], &c, sizeof(c)) > 0) {
+			out << c;
+		}
+		return out.str();
+	}
+	return "";
+}
 Operation* Reader::ParseLine() {
 	PRINT("Line: " + line);
 	Operation* result = Parse();

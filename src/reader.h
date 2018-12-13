@@ -64,7 +64,7 @@ class Reader {
 		}
 		
 		bool IsArgChar(char c) {
-			return isalpha(c) || c == '-' || c == '.' || c == '/';
+			return isalpha(c) || isdigit(c) || c == '-' || c == '.' || c == '/';
 		}
 		void UnexpectedToken(Token t) {
 			ostringstream s;
@@ -225,10 +225,11 @@ class Reader {
 			result << "(" << line << ")";
 			this->line = result.str();
 		}
-		
+		Reader(const string& line) : Reader(0, line) {}
 		
 		//Parse the line to create an Operation
 		Operation* ParseLine();
+		string RunLine();
 };
 
 #endif

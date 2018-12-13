@@ -212,6 +212,15 @@ class InputOperation : public Operation {
 			out << " < " << file;
 		}
 };
+class OutputListener {
+	private:
+		Operation* source;
+	public:
+		OutputListener(Operation* source) : source(source) {}
+		~OutputListener() {
+			delete source;
+		}
+};
 class OutputOperation : public Operation {
 	private:
 		Operation* source;
